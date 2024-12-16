@@ -71,7 +71,7 @@ Este proyecto utiliza herramientas y scripts de los siguientes repositorios de M
 - **[Office IT Pro Deployment Scripts](https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts)**  
   Este repositorio proporciona scripts de Microsoft para la gestión de Office, como la detección de versiones de Office instaladas y la eliminación de instalaciones anteriores. Estos scripts son utilizados en este proyecto para facilitar la instalación y desinstalación de Microsoft Office.
 
-- **[Microsoft Office Deployment Tool (ODT)](https://learn.microsoft.com/en-us/microsoft-365/apps/deploy/overview-office-deployment-tool)**  
+- **[Microsoft Office Deployment Tool (ODT)](https://learn.microsoft.com/en-us/microsoft-365-apps/deploy/overview-office-deployment-tool)**  
   ODT es una herramienta de Microsoft utilizada para la instalación y configuración de Office. Este proyecto automatiza su uso para instalar y configurar las versiones de Office.
 
 Gracias a Microsoft por el desarrollo de estas herramientas y por su liberación bajo la **MIT License**.
