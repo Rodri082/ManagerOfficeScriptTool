@@ -26,6 +26,7 @@ Este repositorio contiene una serie de scripts en **PowerShell** y **Python** qu
 3. **Ejecutar el archivo [RunInstallOffice.bat](./RunInstallOffice.bat)**:
     - Si no tienes permisos de administrador, el script te solicitará acceso mediante UAC (Control de cuentas de usuario).
     - El script [RunInstallOffice.bat](./RunInstallOffice.bat) verificará si tienes permisos de administrador y procederá a ejecutar el script [Install.ps1](./Files/Install.ps1).
+    - Seguir los pasos proporcionados por el script.
 
 ## Uso
 
