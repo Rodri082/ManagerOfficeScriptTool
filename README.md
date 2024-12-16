@@ -61,5 +61,19 @@ Este repositorio contiene una serie de scripts en **PowerShell** y **Python** qu
         - [`OffScrubc2r.vbs`](https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts/blob/master/Office-ProPlus-Deployment/Remove-PreviousOfficeInstalls/OffScrubc2r.vbs)
         - [`Office2013Setup.exe`](https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts/blob/master/Office-ProPlus-Deployment/Remove-PreviousOfficeInstalls/Office2013Setup.exe)
         - [`Office2016Setup.exe`](https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts/blob/master/Office-ProPlus-Deployment/Remove-PreviousOfficeInstalls/Office2016Setup.exe)
+
+## Créditos
+
+Este proyecto utiliza herramientas y scripts de los siguientes repositorios de Microsoft:
+
+- **[Office IT Pro Deployment Scripts](https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts)**  
+  Este repositorio proporciona scripts de Microsoft para la gestión de Office, como la detección de versiones de Office instaladas y la eliminación de instalaciones anteriores. Estos scripts son utilizados en este proyecto para facilitar la instalación y desinstalación de Microsoft Office.
+
+- **[Microsoft Office Deployment Tool (ODT)](https://learn.microsoft.com/en-us/microsoft-365/apps/deploy/overview-office-deployment-tool)**  
+  ODT es una herramienta de Microsoft utilizada para la instalación y configuración de Office. Este proyecto automatiza su uso para instalar y configurar las versiones de Office.
+
+Gracias a Microsoft por el desarrollo de estas herramientas y por su liberación bajo la **MIT License**.
+
 ## Licencia
-- Este proyecto está licenciado bajo la MIT License. Consulta el archivo LICENSE para obtener más detalles.
+
+Este proyecto está licenciado bajo la MIT License - ver el archivo [LICENSE](./LICENSE) para más detalles.
