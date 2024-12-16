@@ -50,16 +50,16 @@ Este repositorio contiene una serie de scripts en **PowerShell** y **Python** qu
         - Office 2013: [ODT 2013](https://www.microsoft.com/en-us/download/details.aspx?id=36778)
         - Office 2016/2019/2021: [ODT 2016/2019/2021](https://www.microsoft.com/en-us/download/details.aspx?id=49117)
         - **Documentación de ODT**: [Visita la documentación oficial de ODT](https://learn.microsoft.com/en-us/microsoft-365-apps/deploy/overview-office-deployment-tool).
-    - **Scripts de desinstalación**: Se descargan desde el repositorio de GitHub [`Office-IT-Pro-Deployment-Scripts`]([https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts]) :
-        - [`Get-OfficeVersion.ps1`]([https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts/blob/master/Office-ProPlus-Management/Get-OfficeVersion/Get-OfficeVersion.ps1])
-        - [`Remove-PreviousOfficeInstalls.ps1`]([https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts/tree/master/Office-ProPlus-Deployment/Remove-PreviousOfficeInstalls])
-        - [`OffScrub03.vbs`]([https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts/blob/master/Office-ProPlus-Deployment/Remove-PreviousOfficeInstalls/OffScrub03.vbs])
-        - [`OffScrub07.vbs`]([https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts/blob/master/Office-ProPlus-Deployment/Remove-PreviousOfficeInstalls/OffScrub07.vbs])
-        - [`OffScrub10.vbs`]([https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts/blob/master/Office-ProPlus-Deployment/Remove-PreviousOfficeInstalls/OffScrub10.vbs])
-        - [`OffScrub_O15msi.vbs`]([https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts/blob/master/Office-ProPlus-Deployment/Remove-PreviousOfficeInstalls/OffScrub_O15msi.vbs])
-        - [`OffScrub_O16msi.vbs`]([https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts/blob/master/Office-ProPlus-Deployment/Remove-PreviousOfficeInstalls/OffScrub_O16msi.vbs])
-        - [`OffScrubc2r.vbs`]([https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts/blob/master/Office-ProPlus-Deployment/Remove-PreviousOfficeInstalls/OffScrubc2r.vbs])
-        - [`Office2013Setup.exe`]([https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts/blob/master/Office-ProPlus-Deployment/Remove-PreviousOfficeInstalls/Office2013Setup.exe])
-        - [`Office2016Setup.exe`]([https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts/blob/master/Office-ProPlus-Deployment/Remove-PreviousOfficeInstalls/Office2016Setup.exe])
+    - **Scripts de desinstalación**: Se descargan desde el repositorio de GitHub [`Office-IT-Pro-Deployment-Scripts`](https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts) :
+        - [`Get-OfficeVersion.ps1`](https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts/blob/master/Office-ProPlus-Management/Get-OfficeVersion/Get-OfficeVersion.ps1)
+        - [`Remove-PreviousOfficeInstalls.ps1`](https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts/tree/master/Office-ProPlus-Deployment/Remove-PreviousOfficeInstalls)
+        - [`OffScrub03.vbs`](https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts/blob/master/Office-ProPlus-Deployment/Remove-PreviousOfficeInstalls/OffScrub03.vbs)
+        - [`OffScrub07.vbs`](https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts/blob/master/Office-ProPlus-Deployment/Remove-PreviousOfficeInstalls/OffScrub07.vbs)
+        - [`OffScrub10.vbs`](https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts/blob/master/Office-ProPlus-Deployment/Remove-PreviousOfficeInstalls/OffScrub10.vbs)
+        - [`OffScrub_O15msi.vbs`](https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts/blob/master/Office-ProPlus-Deployment/Remove-PreviousOfficeInstalls/OffScrub_O15msi.vbs)
+        - [`OffScrub_O16msi.vbs`](https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts/blob/master/Office-ProPlus-Deployment/Remove-PreviousOfficeInstalls/OffScrub_O16msi.vbs)
+        - [`OffScrubc2r.vbs`](https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts/blob/master/Office-ProPlus-Deployment/Remove-PreviousOfficeInstalls/OffScrubc2r.vbs)
+        - [`Office2013Setup.exe`](https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts/blob/master/Office-ProPlus-Deployment/Remove-PreviousOfficeInstalls/Office2013Setup.exe)
+        - [`Office2016Setup.exe`](https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts/blob/master/Office-ProPlus-Deployment/Remove-PreviousOfficeInstalls/Office2016Setup.exe)
 ## Licencia
 - Este proyecto está licenciado bajo la MIT License. Consulta el archivo LICENSE para obtener más detalles.
