@@ -17,7 +17,7 @@ Este repositorio contiene una serie de scripts en **PowerShell** y **Python** qu
 ## Requisitos
 
 - **Sistemas operativos soportados**: Windows 7 y versiones posteriores (32-bit y 64-bit).
-- **Dependencias**: No se requiere ninguna dependencia adicional si se descarga el archivo desde el [Último Release](https://github.com/Rodri082/ManagerOfficeTool/releases/latest), el cual contiene el script Python empaquetado como ejecutable (.exe) utilizando **[cx_Freeze](https://cx-freeze.readthedocs.io/en/stable/)**, lo que permite su ejecución sin necesidad de tener Python instalado.
+- **Dependencias**: No se requiere ninguna dependencia adicional si se descarga el archivo desde el [Último Release](https://github.com/Rodri082/ManagerOfficeTool/releases/latest), el cual contiene el script Python empaquetado como ejecutable (.exe) utilizando **[cx_Freeze](https://cx-freeze.readthedocs.io/en/stable/)** y el archivo de configuracion [Setup.py](./Setup.py), lo que permite su ejecución sin necesidad de tener Python instalado.
 
 ## Instalación (.exe)
 
@@ -31,7 +31,7 @@ Este repositorio contiene una serie de scripts en **PowerShell** y **Python** qu
 ## Uso
 
 1. **Ejecución inicial**: 
-    - Al ejecutar el archivo [`RunInstallOffice.bat`](./RunInstallOffice.bat), el sistema comprobará si está ejecutándose con permisos de administrador. Si no es así, se solicitarán permisos elevados mediante UAC.
+    - Al ejecutar el archivo [RunInstallOffice.bat](./RunInstallOffice.bat), el sistema comprobará si está ejecutándose con permisos de administrador. Si no es así, se solicitarán permisos elevados mediante UAC.
     - Luego, se ejecutará el script [Install.ps1](./Files/Install.ps1).
 
 2. **Detección de versiones de Office**:
