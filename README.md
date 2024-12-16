@@ -9,7 +9,7 @@ Este repositorio contiene una serie de scripts en **PowerShell** y **Python** qu
 ### Características
 
 - **Verificación de permisos de administrador**: Se asegura de que el script se ejecute con privilegios de administrador.
-- **Detección de versiones previas de Office**: Utiliza el script [`Get-OfficeVersion.ps1`]([https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts/blob/master/Office-ProPlus-Management/Get-OfficeVersion/Get-OfficeVersion.ps1]) para detectar versiones existentes de Office en el sistema.
+- **Detección de versiones previas de Office**: Utiliza el script [`Get-OfficeVersion.ps1`](https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts/blob/master/Office-ProPlus-Management/Get-OfficeVersion/Get-OfficeVersion.ps1) para detectar versiones existentes de Office en el sistema.
 - **Desinstalación de versiones previas**: Si se detectan versiones previas, el script pregunta al usuario si desea desinstalarlas utilizando el script [`Remove-PreviousOfficeInstalls.ps1`](https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts/tree/master/Office-ProPlus-Deployment/Remove-PreviousOfficeInstalls).
 - **Instalación automática de Office**: Después de limpiar las versiones previas, el script procede a instalar Office usando la herramienta **Office Deployment Tool (ODT)**.
 - **Soporte para versiones de Windows**: Compatible con Windows 7 y versiones posteriores, tanto en arquitecturas de 32 como 64 bits.
@@ -22,15 +22,15 @@ Este repositorio contiene una serie de scripts en **PowerShell** y **Python** qu
 ## Instalación
 
 1. **Descargar el repositorio**: Puedes clonar o descargar el repositorio desde GitHub.
-2. **Ejecutar el archivo [`RunInstallOffice.bat`]([])**:
+2. **Ejecutar el archivo [`RunInstallOffice.bat`]()**:
     - Si no tienes permisos de administrador, el script te solicitará acceso mediante UAC (Control de cuentas de usuario).
-    - El script [`RunInstallOffice.bat`]([]) verificará si tienes permisos de administrador y procederá a ejecutar el script `Install.ps1`.
+    - El script [`RunInstallOffice.bat`]() verificará si tienes permisos de administrador y procederá a ejecutar el script `Install.ps1`.
 
 ## Uso
 
 1. **Ejecución inicial**: 
-    - Al ejecutar el archivo [`RunInstallOffice.bat`]([]), el sistema comprobará si está ejecutándose con permisos de administrador. Si no es así, se solicitarán permisos elevados mediante UAC.
-    - Luego, se ejecutará el script [`Install.ps1`]([]).
+    - Al ejecutar el archivo [`RunInstallOffice.bat`](), el sistema comprobará si está ejecutándose con permisos de administrador. Si no es así, se solicitarán permisos elevados mediante UAC.
+    - Luego, se ejecutará el script [`Install.ps1`]().
 
 2. **Detección de versiones de Office**:
     - Al inicio de la ejecución de `Install.ps1`, se preguntará al usuario si desea detectar versiones previas de Office instaladas en el sistema.
@@ -41,7 +41,7 @@ Este repositorio contiene una serie de scripts en **PowerShell** y **Python** qu
     - Si el usuario elige no desinstalar las versiones previas, se le advertirá sobre posibles conflictos.
 
 4. **Instalación de una nueva versión de Office**:
-    - Después de la desinstalación (si se aplica), el script ejecutará el archivo Python [`DeploymentScriptTool.py`]([]) para proceder con la instalación de la nueva versión de Office, usando los archivos de configuración y las herramientas necesarias.
+    - Después de la desinstalación (si se aplica), el script ejecutará el archivo Python [`DeploymentScriptTool.py`]() para proceder con la instalación de la nueva versión de Office, usando los archivos de configuración y las herramientas necesarias.
 
 ## Archivos descargados automáticamente
 
