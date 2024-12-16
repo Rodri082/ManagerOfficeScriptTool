@@ -17,7 +17,7 @@ Este repositorio contiene una serie de scripts en **PowerShell** y **Python** qu
 ## Requisitos
 
 - **Sistemas operativos soportados**: Windows 7 y versiones posteriores (32-bit y 64-bit).
-- **Dependencias**: No se requiere ninguna dependencia adicional si se descarga el archivo desde el Release, el cual contiene el script Python empaquetado como ejecutable (.exe) para su uso sin necesidad de tener Python instalado.
+- **Dependencias**: No se requiere ninguna dependencia adicional si se descarga el archivo desde el [Último Release](https://github.com/Rodri082/ManagerOfficeTool/releases/latest), el cual contiene el script Python empaquetado como ejecutable (.exe) para su uso sin necesidad de tener Python instalado.
 
 ## Instalación (.exe)
 
