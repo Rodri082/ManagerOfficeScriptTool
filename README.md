@@ -39,7 +39,7 @@ Este repositorio contiene una serie de scripts en **PowerShell** y **Python** qu
     - Si el usuario acepta, se descargará y ejecutará el script [Get-OfficeVersion.ps1](https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts/blob/master/Office-ProPlus-Management/Get-OfficeVersion/Get-OfficeVersion.ps1) desde el repositorio de GitHub de Microsoft.
 
 3. **Desinstalación de versiones previas (si es necesario)**:
-    - Si se detectan versiones de Office instaladas, el usuario puede optar por desinstalar esas versiones usando el script [Remove-PreviousOfficeInstalls.ps1](https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts/tree/master/Office-ProPlus-Deployment/Remove-PreviousOfficeInstalls) de Microsoft.
+    - Si se detectan versiones de Office instaladas, el usuario puede optar por desinstalar esas versiones usando el script [Remove-PreviousOfficeInstalls.ps1](https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts/blob/master/Office-ProPlus-Deployment/Remove-PreviousOfficeInstalls/Remove-PreviousOfficeInstalls.ps1) de Microsoft.
     - Si el usuario elige no desinstalar las versiones previas, se le advertirá sobre posibles conflictos.
 
 4. **Instalación de una nueva versión de Office**:
@@ -52,9 +52,9 @@ Este repositorio contiene una serie de scripts en **PowerShell** y **Python** qu
         - Office 2013: [ODT 2013](https://www.microsoft.com/en-us/download/details.aspx?id=36778)
         - Office 2016/2019/2021: [ODT 2016/2019/2021](https://www.microsoft.com/en-us/download/details.aspx?id=49117)
         - **Documentación de ODT**: [Visita la documentación oficial de ODT](https://learn.microsoft.com/en-us/microsoft-365-apps/deploy/overview-office-deployment-tool).
-    - **Scripts de desinstalación**: Se descargan desde el repositorio de GitHub [Office-IT-Pro-Deployment-Scripts](https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts) :
+    - **Scripts de desinstalación**: Se descargan desde el repositorio de GitHub [Office-IT-Pro-Deployment-Scripts](https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts):
         - [Get-OfficeVersion.ps1](https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts/blob/master/Office-ProPlus-Management/Get-OfficeVersion/Get-OfficeVersion.ps1)
-        - [Remove-PreviousOfficeInstalls.ps1](https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts/tree/master/Office-ProPlus-Deployment/Remove-PreviousOfficeInstalls)
+        - [Remove-PreviousOfficeInstalls.ps1](https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts/blob/master/Office-ProPlus-Deployment/Remove-PreviousOfficeInstalls/Remove-PreviousOfficeInstalls.ps1)
         - [OffScrub03.vbs](https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts/blob/master/Office-ProPlus-Deployment/Remove-PreviousOfficeInstalls/OffScrub03.vbs)
         - [OffScrub07.vbs](https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts/blob/master/Office-ProPlus-Deployment/Remove-PreviousOfficeInstalls/OffScrub07.vbs)
         - [OffScrub10.vbs](https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts/blob/master/Office-ProPlus-Deployment/Remove-PreviousOfficeInstalls/OffScrub10.vbs)
