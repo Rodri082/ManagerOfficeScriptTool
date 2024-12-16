@@ -10,7 +10,7 @@ Este repositorio contiene una serie de scripts en **PowerShell** y **Python** qu
 
 - **Verificación de permisos de administrador**: Se asegura de que el script se ejecute con privilegios de administrador.
 - **Detección de versiones previas de Office**: Utiliza el script [Get-OfficeVersion.ps1](https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts/blob/master/Office-ProPlus-Management/Get-OfficeVersion/Get-OfficeVersion.ps1) para detectar versiones existentes de Office en el sistema.
-- **Desinstalación de versiones previas**: Si se detectan versiones previas, el script pregunta al usuario si desea desinstalarlas utilizando el script [Remove-PreviousOfficeInstalls.ps1](https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts/tree/master/Office-ProPlus-Deployment/Remove-PreviousOfficeInstalls).
+- **Desinstalación de versiones previas**: Si se detectan versiones previas, el script pregunta al usuario si desea desinstalarlas utilizando el script [Remove-PreviousOfficeInstalls.ps1](https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts/blob/master/Office-ProPlus-Deployment/Remove-PreviousOfficeInstalls/Remove-PreviousOfficeInstalls.ps1).
 - **Instalación automática de Office**: Después de limpiar las versiones previas, el script procede a instalar Office usando la herramienta **Office Deployment Tool (ODT)**.
 - **Soporte para versiones de Windows**: Compatible con Windows 7 y versiones posteriores, tanto en arquitecturas de 32 como 64 bits.
 
