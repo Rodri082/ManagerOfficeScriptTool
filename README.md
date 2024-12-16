@@ -19,7 +19,7 @@ Este repositorio contiene una serie de scripts en **PowerShell** y **Python** qu
 - **Sistemas operativos soportados**: Windows 7 y versiones posteriores (32-bit y 64-bit).
 - **Dependencias**: No se requiere ninguna dependencia adicional si se descarga el archivo desde el Release, el cual contiene el script Python empaquetado como ejecutable (.exe) para su uso sin necesidad de tener Python instalado.
 
-## Instalación
+## Instalación (.EXE)
 
 1. **Descargar**: [ManagerOfficeTool.zip](https://github.com/Rodri082/ManagerOfficeTool/releases/latest)
 2. **Descomprimir**: [ManagerOfficeTool.zip](https://github.com/Rodri082/ManagerOfficeTool/releases/latest)
