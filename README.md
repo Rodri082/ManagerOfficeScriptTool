@@ -22,18 +22,18 @@ Este repositorio contiene una serie de scripts en **PowerShell** y **Python** qu
 ## Instalación
 
 1. **Descargar el repositorio**: Puedes clonar o descargar el repositorio desde GitHub.
-2. **Ejecutar el archivo [RunInstallOffice.bat]()**:
+2. **Ejecutar el archivo [RunInstallOffice.bat](./RunInstallOffice.bat)**:
     - Si no tienes permisos de administrador, el script te solicitará acceso mediante UAC (Control de cuentas de usuario).
-    - El script [RunInstallOffice.bat]() verificará si tienes permisos de administrador y procederá a ejecutar el script [Install.ps1]().
+    - El script [RunInstallOffice.bat](./RunInstallOffice.bat) verificará si tienes permisos de administrador y procederá a ejecutar el script [Install.ps1](./Files/Install.ps1).
 
 ## Uso
 
 1. **Ejecución inicial**: 
-    - Al ejecutar el archivo [`RunInstallOffice.bat`](), el sistema comprobará si está ejecutándose con permisos de administrador. Si no es así, se solicitarán permisos elevados mediante UAC.
-    - Luego, se ejecutará el script [Install.ps1]().
+    - Al ejecutar el archivo [`RunInstallOffice.bat`](./RunInstallOffice.bat), el sistema comprobará si está ejecutándose con permisos de administrador. Si no es así, se solicitarán permisos elevados mediante UAC.
+    - Luego, se ejecutará el script [Install.ps1](./Files/Install.ps1).
 
 2. **Detección de versiones de Office**:
-    - Al inicio de la ejecución de [Install.ps1](), se preguntará al usuario si desea detectar versiones previas de Office instaladas en el sistema.
+    - Al inicio de la ejecución de [Install.ps1](./Files/Install.ps1), se preguntará al usuario si desea detectar versiones previas de Office instaladas en el sistema.
     - Si el usuario acepta, se descargará y ejecutará el script [Get-OfficeVersion.ps1](https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts/blob/master/Office-ProPlus-Management/Get-OfficeVersion/Get-OfficeVersion.ps1) desde el repositorio de GitHub de Microsoft.
 
 3. **Desinstalación de versiones previas (si es necesario)**:
@@ -41,7 +41,7 @@ Este repositorio contiene una serie de scripts en **PowerShell** y **Python** qu
     - Si el usuario elige no desinstalar las versiones previas, se le advertirá sobre posibles conflictos.
 
 4. **Instalación de una nueva versión de Office**:
-    - Después de la desinstalación (si se aplica), el script ejecutará el archivo Python [DeploymentScriptTool.py]() para proceder con la instalación de la nueva versión de Office, usando los archivos de configuración y las herramientas necesarias.
+    - Después de la desinstalación (si se aplica), el script ejecutará el archivo Python [DeploymentScriptTool.py](./Files/DeploymentScriptTool.py) para proceder con la instalación de la nueva versión de Office, usando los archivos de configuración y las herramientas necesarias.
 
 ## Archivos descargados automáticamente
 
