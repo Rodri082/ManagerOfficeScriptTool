@@ -29,7 +29,7 @@ files_dir = os.path.join(script_dir, 'Files')
 
 ODT_2013 = "https://download.microsoft.com/download/6/2/3/6230F7A2-D8A9-478B-AC5C-57091B632FCF/officedeploymenttool_x86_5031-1000.exe"
 ODT_2016_2019_2021 = "https://download.microsoft.com/download/2/7/A/27AF1BE6-DD20-4CB4-B154-EBAB8A7D4A7E/officedeploymenttool_18129-20158.exe"
-SARA_URL = "https://aka.ms/SaRA_CommandLineVersionFiles"
+SARA_URL = "https://aka.ms/SaRA_EnterpriseVersionFiles"
 
 class OfficeInstallation:
     def __init__(self, name: str, version: str, install_path: str, click_to_run: bool, bitness: str,
