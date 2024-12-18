@@ -55,7 +55,7 @@ Este proyecto utiliza herramientas y scripts de los siguientes repositorios de M
   **SaRA_CommandLineVersion** es una herramienta de línea de comandos de Microsoft Support and Recovery Assistant (SaRA) que facilita la desinstalación de versiones anteriores de Office de manera automatizada. Este proyecto utiliza **SaRACmd.exe** para gestionar la eliminación de instalaciones previas de Microsoft Office, simplificando el proceso para los usuarios al eliminar la necesidad de realizar la desinstalación manualmente o usar scripts PowerShell adicionales.
 
 
-- **[Microsoft Office Deployment Tool (ODT)](https://learn.microsoft.com/en-us/microsoft-365-apps/deploy/overview-office-deployment-tool)**  
+- **[Microsoft Office Deployment Tool (ODT)](http://aka.ms/ODT)**  
   ODT es una herramienta de Microsoft utilizada para la instalación y configuración de Office. Este proyecto automatiza su uso para instalar y configurar las versiones de Office.
 
 Gracias a Microsoft por el desarrollo de estas herramientas y por su liberación bajo la **MIT License**.
