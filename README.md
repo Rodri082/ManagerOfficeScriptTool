@@ -6,7 +6,7 @@ Este proyecto tiene como objetivo facilitar la instalación y desinstalación de
 
 Este repositorio contiene un script en Python que automatiza la instalación y desinstalación de Office en equipos Windows. El flujo de trabajo está diseñado para detectar y eliminar versiones previas de Office antes de proceder con la instalación de una nueva versión.
 
-A partir de la última actualización, el script ha sido mejorado para **eliminar la dependencia de los archivos `Install.ps1`, `RunInstallOffice.bat`, y los scripts PowerShell de terceros**. Ahora, todo el proceso se maneja directamente desde el script en Python `ManagerOfficeScriptTool.py`, lo que facilita su uso y distribución.
+A partir de la última actualización, el script ha sido mejorado para **eliminar la dependencia de los archivos `Install.ps1`, `RunInstallOffice.bat`, y scripts PowerShell de terceros**. Ahora, todo el proceso se maneja directamente desde el script en Python `ManagerOfficeScriptTool.py`, lo que facilita su uso y distribución.
 
 ## Características
 
