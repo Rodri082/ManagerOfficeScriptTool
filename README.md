@@ -52,7 +52,8 @@ Durante la ejecución del script, se descargan los siguientes archivos:
 Este proyecto utiliza herramientas y scripts de los siguientes repositorios de Microsoft:
 
 - **[SaRA_CommandLineVersion](https://learn.microsoft.com/en-us/microsoft-365/troubleshoot/administration/assistant-office-uninstall)**  
-  Este repositorio proporciona scripts de Microsoft para la gestión de Office, como la detección de versiones de Office instaladas y la eliminación de instalaciones anteriores. Estos scripts son utilizados en este proyecto para facilitar la instalación y desinstalación de Microsoft Office.
+  **SaRA_CommandLineVersion** es una herramienta de línea de comandos de Microsoft Support and Recovery Assistant (SaRA) que facilita la desinstalación de versiones anteriores de Office de manera automatizada. Este proyecto utiliza **SaRACmd.exe** para gestionar la eliminación de instalaciones previas de Microsoft Office, simplificando el proceso para los usuarios al eliminar la necesidad de realizar la desinstalación manualmente o usar scripts PowerShell adicionales.
+
 
 - **[Microsoft Office Deployment Tool (ODT)](https://learn.microsoft.com/en-us/microsoft-365-apps/deploy/overview-office-deployment-tool)**  
   ODT es una herramienta de Microsoft utilizada para la instalación y configuración de Office. Este proyecto automatiza su uso para instalar y configurar las versiones de Office.
