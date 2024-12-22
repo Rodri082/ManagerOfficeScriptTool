@@ -12,10 +12,20 @@ Este repositorio contiene un script en Python que automatiza la instalación y d
 ## Requisitos
 - **Dependencias**: El script está empaquetado como un archivo ejecutable `ManagerOfficeScriptTool.exe`, por lo que no deberia ser necesario tener Python instalado.
 
-## Instalación
-1. **Descargar**: [ManagerOfficeScriptTool.zip](https://github.com/Rodri082/ManagerOfficeScriptTool/releases).
-2. **Descomprimir**: Extrae el contenido del archivo ZIP.
-3. **Ejecutar**: Simplemente ejecuta el archivo `ManagerOfficeScriptTool.exe` en el directorio extraído. El archivo se encargará de la instalación o desinstalación de Office de acuerdo con las opciones que elija el usuario.
+## Instalación de ManagerOfficeScriptTool
+1. **Descargar**:
+   - Puedes elegir entre dos opciones de descarga:
+     - El archivo `.exe` empaquetado con **PyInstaller**.
+     - El archivo `.zip` empaquetado con **cx_Freeze**.
+   - Descarga desde el siguiente enlace: [ManagerOfficeScriptTool releases](https://github.com/Rodri082/ManagerOfficeScriptTool/releases).
+
+2. **Descomprimir** (solo si descargaste el archivo `.zip`):
+   - Si optaste por el archivo `.zip`, extrae su contenido en una ubicación de tu elección.
+
+3. **Ejecutar**:
+   - Si descargaste el archivo `.exe`, simplemente ejecútalo.
+   - Si descargaste el archivo `.zip`, navega al directorio donde extrajiste los archivos y ejecuta `ManagerOfficeScriptTool.exe`.
+   - El programa se encargará de la instalación o desinstalación de Office según las opciones que selecciones durante el proceso.
 
 ## Uso
 1. **Ejecución inicial**: Al ejecutar el archivo `ManagerOfficeScriptTool.exe`, el sistema comprobará si está ejecutándose con permisos de administrador. Si no es así, se solicitará que vuelva a ejecutar con permisos elevados.
