@@ -41,7 +41,7 @@ Durante la ejecución del script, se descargan los siguientes archivos:
 ## Créditos
 Este proyecto utiliza herramientas y scripts de los siguientes repositorios de Microsoft:
 - **[Office IT Pro Deployment Scripts](https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts)**  
-  This repository provides various scripts for Office management, including version detection and uninstallation of previous Office installations.
+  Este repositorio proporciona varios scripts para la desinstalación de instalaciones anteriores de Office.
 - **[Office Deployment Tool (ODT)](http://aka.ms/ODT)**  
   ODT es una herramienta de Microsoft utilizada para la instalación y configuración de Office. Este proyecto automatiza su uso para instalar y configurar las versiones de Office.
 
