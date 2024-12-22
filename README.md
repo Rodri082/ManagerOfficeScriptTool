@@ -51,8 +51,7 @@ Durante la ejecución del script, se descargan los siguientes archivos:
 
 Este proyecto utiliza herramientas y scripts de los siguientes repositorios de Microsoft:
 
-- **[SaRACmd](https://aka.ms/SaRA_EnterpriseVersion)**  
-  **SaRACmd** es una herramienta de línea de comandos de Microsoft Support and Recovery Assistant (SaRA) que facilita la desinstalación de versiones anteriores de Office de manera automatizada. Este proyecto utiliza **SaRACmd.exe** para gestionar la eliminación de instalaciones previas de Microsoft Office, simplificando el proceso para los usuarios al eliminar la necesidad de realizar la desinstalación manualmente o usar scripts PowerShell adicionales.
+- **[SaRACmd](https://aka.ms/SaRA_EnterpriseVersion)** es una herramienta de línea de comandos de Microsoft Support and Recovery Assistant (SaRA) que facilita la desinstalación de versiones anteriores de Office de manera automatizada. Este proyecto utiliza **SaRACmd.exe** para gestionar la eliminación de instalaciones previas de Microsoft Office, simplificando el proceso para los usuarios al eliminar la necesidad de realizar la desinstalación manualmente o usar scripts PowerShell adicionales.
 
 
 - **[Office Deployment Tool (ODT)](http://aka.ms/ODT)**  
