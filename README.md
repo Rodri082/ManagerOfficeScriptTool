@@ -30,12 +30,12 @@ Durante la ejecución del script, se descargan los siguientes archivos:
         - Office 2013: [ODT 2013](https://www.microsoft.com/en-us/download/details.aspx?id=36778)
         - Office 2016/2019/LTSC-2021/LTSC-2024/365: [ODT 2016/2019/2021](https://www.microsoft.com/en-us/download/details.aspx?id=49117)
    - **Scripts de desinstalación**: Se descargan desde el repositorio de GitHub [Office-IT-Pro-Deployment-Scripts](https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts):
-   - [OffScrub03.vbs](https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts/blob/master/Office-ProPlus-Deployment/Remove-PreviousOfficeInstalls/OffScrub03.vbs)
-   - [OffScrub07.vbs](https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts/blob/master/Office-ProPlus-Deployment/Remove-PreviousOfficeInstalls/OffScrub07.vbs)
-   - [OffScrub10.vbs](https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts/blob/master/Office-ProPlus-Deployment/Remove-PreviousOfficeInstalls/OffScrub10.vbs)
-   - [OffScrub_O15msi.vbs](https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts/blob/master/Office-ProPlus-Deployment/Remove-PreviousOfficeInstalls/OffScrub_O15msi.vbs)
-   - [OffScrub_O16msi.vbs](https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts/blob/master/Office-ProPlus-Deployment/Remove-PreviousOfficeInstalls/OffScrub_O16msi.vbs)
-   - [OffScrubc2r.vbs](https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts/blob/master/Office-ProPlus-Deployment/Remove-PreviousOfficeInstalls/OffScrubc2r.vbs)
+        - [OffScrub03.vbs](https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts/blob/master/Office-ProPlus-Deployment/Remove-PreviousOfficeInstalls/OffScrub03.vbs)
+        - [OffScrub07.vbs](https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts/blob/master/Office-ProPlus-Deployment/Remove-PreviousOfficeInstalls/OffScrub07.vbs)
+        - [OffScrub10.vbs](https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts/blob/master/Office-ProPlus-Deployment/Remove-PreviousOfficeInstalls/OffScrub10.vbs)
+        - [OffScrub_O15msi.vbs](https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts/blob/master/Office-ProPlus-Deployment/Remove-PreviousOfficeInstalls/OffScrub_O15msi.vbs)
+        - [OffScrub_O16msi.vbs](https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts/blob/master/Office-ProPlus-Deployment/Remove-PreviousOfficeInstalls/OffScrub_O16msi.vbs)
+        - [OffScrubc2r.vbs](https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts/blob/master/Office-ProPlus-Deployment/Remove-PreviousOfficeInstalls/OffScrubc2r.vbs)
 
 ## Créditos
 Este proyecto utiliza herramientas y scripts de los siguientes repositorios de Microsoft:
