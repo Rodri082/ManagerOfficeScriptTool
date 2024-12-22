@@ -1,6 +1,6 @@
 # ManagerOfficeScriptTool - Instalación y Desinstalación Automática de Office
 
-Este proyecto tiene como objetivo facilitar la instalación y desinstalación de Microsoft Office en equipos Windows mediante un script Python. El proceso es compatible con versiones de Office 2013, 2016, 2019, LTSC-2021, LTSC-2024 y 365.(Versiones de 32 y 64 Bits)
+Este proyecto tiene como objetivo facilitar la instalación y desinstalación de Microsoft Office en equipos Windows mediante un script Python. El proceso es compatible con versiones de Office 2013, 2016, 2019, LTSC-2021, LTSC-2024 y 365. (Versiones de 32 y 64 Bits)
 
 ## Descripción
 
