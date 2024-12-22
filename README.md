@@ -15,8 +15,8 @@ Este repositorio contiene un script en Python que automatiza la instalación y d
 ## Instalación de ManagerOfficeScriptTool
 1. **Descargar**:
    - Puedes elegir entre dos opciones de descarga:
-     - El archivo `.exe` empaquetado con **PyInstaller**.
-     - El archivo `.zip` empaquetado con **cx_Freeze**.
+     - El archivo `.exe` empaquetado con **PyInstaller** utilizando Python 3.13.1.
+     - El archivo `.zip` empaquetado con **cx_Freeze** utilizando Python 3.12.8.
    - Descarga desde el siguiente enlace: [ManagerOfficeScriptTool releases](https://github.com/Rodri082/ManagerOfficeScriptTool/releases).
 
 2. **Descomprimir** (solo si descargaste el archivo `.zip`):
