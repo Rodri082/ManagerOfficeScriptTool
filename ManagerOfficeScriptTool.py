@@ -396,7 +396,7 @@ def create_office_selection_window(install_folder):
     frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S), padx=10, pady=10)
 
     ttk.Label(frame, text="Selecciona la versión de Office:", font=("Arial", 10)).grid(row=0, column=0, sticky=tk.W, pady=5)
-    combo_version = ttk.Combobox(frame, width=50, font=("Arial", 10))
+    combo_version = ttk.Combobox(frame, width=50, font=("Arial", 10), state="readonly")
     combo_version["values"] = [
         "Office Standard 2013", "Office Professional Plus 2013", "Office Standard 2016", "Office Professional Plus 2016",
         "Office Standard 2019", "Office Professional Plus 2019", "Office LTSC Standard 2021", "Office LTSC Professional Plus 2021",
@@ -410,13 +410,13 @@ def create_office_selection_window(install_folder):
     combo_version.set("Office Standard 2013")
 
     ttk.Label(frame, text="Selecciona la arquitectura:", font=("Arial", 10)).grid(row=2, column=0, sticky=tk.W, pady=5)
-    combo_bits = ttk.Combobox(frame, width=10, font=("Arial", 10))
+    combo_bits = ttk.Combobox(frame, width=10, font=("Arial", 10), state="readonly")
     combo_bits["values"] = ["32", "64"]
     combo_bits.grid(row=3, column=0, sticky=tk.W, pady=5)
     combo_bits.set("64")
 
     ttk.Label(frame, text="Selecciona el idioma:", font=("Arial", 10)).grid(row=4, column=0, sticky=tk.W, pady=5)
-    combo_language = ttk.Combobox(frame, width=20, font=("Arial", 10))
+    combo_language = ttk.Combobox(frame, width=20, font=("Arial", 10), state="readonly")
     combo_language["values"] = ["es-es", "en-us"]
     combo_language.grid(row=5, column=0, sticky=tk.W, pady=5)
     combo_language.set("es-es")
