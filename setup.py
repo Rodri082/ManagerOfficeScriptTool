@@ -13,7 +13,7 @@ build_exe_options = {
 
 setup(
     name="ManagerOfficeScriptTool",
-    version="2.2",
+    version="2.4",
     description="Herramienta de Detección, Instalación y Desinstalación Automática de Office",
     options={"build_exe": build_exe_options},
     executables=[Executable(
