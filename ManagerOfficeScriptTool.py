@@ -1,41 +1,34 @@
 import os
-import ctypes
-import subprocess
 import sys
-import requests
+import shutil
+import zipfile
+import subprocess
+import threading
+import datetime
+import tempfile
 import platform
 import winreg
-import tempfile
+import requests
+
 from typing import List
 from urllib.parse import urlparse
 from tqdm import tqdm
-import tkinter as tk
-from tkinter import ttk
-from tkinter import messagebox
-import shutil
-import threading
-import datetime
 from colorama import init, Fore
 
-script_dir = (
-    os.path.dirname(os.path.abspath(sys.argv[0]))
-    if getattr(sys, 'frozen', False)
-    else os.path.dirname(os.path.abspath(__file__))
-)
+import tkinter as tk
+import tkinter.ttk as ttk
+import tkinter.messagebox as messagebox
 
-files_dir = os.path.join(script_dir, 'Files')
 
-ODT_2013 = "https://download.microsoft.com/download/6/2/3/6230F7A2-D8A9-478B-AC5C-57091B632FCF/officedeploymenttool_x86_5031-1000.exe"
-ODT_2016_2019_LTSC2021_LTSC2024_365 = "https://download.microsoft.com/download/2/7/A/27AF1BE6-DD20-4CB4-B154-EBAB8A7D4A7E/officedeploymenttool_18129-20158.exe"
+temp_dir = tempfile.mkdtemp(prefix="ManagerOfficeScriptTool_")
+logs_folder = os.path.join(temp_dir, "logs")
+install_folder = os.path.join(temp_dir, "InstallOfficeFiles")
+uninstall_folder = os.path.join(temp_dir, "UninstallOfficeFiles")
 
-version_scripts = {
-    "2003": "https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts/raw/refs/heads/master/Office-ProPlus-Deployment/Remove-PreviousOfficeInstalls/OffScrub03.vbs",
-    "2007": "https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts/raw/refs/heads/master/Office-ProPlus-Deployment/Remove-PreviousOfficeInstalls/OffScrub07.vbs",
-    "2010": "https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts/raw/refs/heads/master/Office-ProPlus-Deployment/Remove-PreviousOfficeInstalls/OffScrub10.vbs",
-    "2013": "https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts/raw/refs/heads/master/Office-ProPlus-Deployment/Remove-PreviousOfficeInstalls/OffScrub_O15msi.vbs",
-    "2016": "https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts/raw/refs/heads/master/Office-ProPlus-Deployment/Remove-PreviousOfficeInstalls/OffScrub_O16msi.vbs",
-    "ClickToRun": "https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts/raw/refs/heads/master/Office-ProPlus-Deployment/Remove-PreviousOfficeInstalls/OffScrubc2r.vbs",
-}
+ODT_2013 = "https://download.microsoft.com/download/6/2/3/6230f7a2-d8a9-478b-ac5c-57091b632fcf/officedeploymenttool_x86_5031-1000.exe"
+ODT_2016_2019_LTSC2021_LTSC2024_365 = "https://download.microsoft.com/download/6c1eeb25-cf8b-41d9-8d0d-cc1dbc032140/officedeploymenttool_18526-20146.exe"
+
+SARA_ZIP_URL = "https://aka.ms/SaRA_EnterpriseVersionFiles"
 
 registry_cache = {}
 
@@ -190,95 +183,104 @@ def display_office_installations(installations: List[OfficeInstallation]):
             print(f"{key}: {'-' * (35 - len(key))} " + str(value))
     print("-------------------------------------------------------------------------------------------------------------")
 
-def detect_office_version(install_folder):
+def detect_office_version():
     installations = get_office_installations(show_all_installed_products=False)
 
     if not installations:
         print(Fore.GREEN + "No se encontraron instalaciones de Microsoft Office.")
-        ask_proceed_installation(install_folder)
+        ask_proceed_installation()
         return []
 
     display_office_installations(installations)
-    ask_uninstall_and_proceed(install_folder, installations)
+    ask_uninstall_and_proceed()
 
     return installations
 
 def get_computer_architecture() -> str:
     return platform.architecture()[0]
 
-def download_script(url: str, destination: str) -> bool:
+def download_extract_execute_SaRACmd():
     try:
-        response = requests.get(url, stream=True)
+        os.makedirs(uninstall_folder, exist_ok=True)
+        print(f"Descargando SaRACmd desde: {SARA_ZIP_URL}")
+
+        response = requests.get(SARA_ZIP_URL, stream=True, allow_redirects=True)
         response.raise_for_status()
-        with open(destination, 'wb') as file:
-            file.write(response.content)
-        return True
-    except Exception as e:
-        log_error(f"Error descargando el script desde {url}: {e}")
-        return False
 
-def uninstall_office_version(installations):
-    script_url = None
-    if installations.click_to_run:
-        script_url = version_scripts["ClickToRun"]
-    else:
-        if "2003" in installations.version:
-            script_url = version_scripts["2003"]
-        elif "2007" in installations.version:
-            script_url = version_scripts["2007"]
-        elif "2010" in installations.version:
-            script_url = version_scripts["2010"]
-        elif "2013" in installations.version:
-            script_url = version_scripts["2013"]
-        elif "2016" in installations.version:
-            script_url = version_scripts["2016"]
+        filename = os.path.basename(response.url)
+        if not filename.lower().endswith(".zip"):
+            filename += ".zip"
 
-    if not script_url:
-        log_error(f"No se pudo determinar el script adecuado para la versión: {installations.version}")
-        return
+        zip_path = os.path.join(uninstall_folder, filename)
+        total_size = int(response.headers.get('Content-Length', 0))
 
-    script_name = script_url.split("/")[-1]
-    script_path = os.path.join(tempfile.gettempdir(), script_name)
+        with open(zip_path, "wb") as file, tqdm(
+            total=total_size, unit="B", unit_scale=True, desc=f"Descargando {filename}"
+        ) as bar:
+            for chunk in response.iter_content(chunk_size=8192):
+                file.write(chunk)
+                bar.update(len(chunk))
 
-    if not download_script(script_url, script_path):
-        print(Fore.RED + f"No se pudo descargar el script para la versión {installations.version}.")
-        return
+        print(f"Archivo descargado en: {zip_path}")
 
-    try:
-        command = ["cscript", "//nologo", "//X", script_path]
-        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        extract_path = os.path.join(uninstall_folder, os.path.splitext(filename)[0])
+        os.makedirs(extract_path, exist_ok=True)
 
-        for line in process.stdout:
-            print(line.strip())
-        process.wait()
+        print(f"Extrayendo archivos en: {extract_path}")
+        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+            zip_ref.extractall(extract_path)
 
-        if process.returncode == 0:
-            print(Fore.GREEN + f"Desinstalación completada para {installations.name} ({installations.version}).")
+        sara_exe_path = os.path.join(extract_path, "SaRACmd.exe")
+        if not os.path.exists(sara_exe_path):
+            log_error("SaRACmd.exe no se encontró después de extraer el ZIP.")
+            return
+        
+        root = tk.Tk()
+        root.withdraw()
+        root.attributes('-topmost', True)
+
+        if messagebox.askyesno("Ver EULA", "¿Deseas ver el Acuerdo de Licencia de Usuario Final (EULA) antes de aceptar?"):
+            try:
+                print("=============================================================================================================")
+                subprocess.run(
+                    [sara_exe_path, "-DisplayEULA"],
+                    cwd=os.path.dirname(sara_exe_path),
+                    check=True
+                )
+                print("=============================================================================================================")
+            except subprocess.CalledProcessError as e:
+                log_error(f"Error al mostrar el EULA: {e}")
+                root.destroy()
+                return
+
+        accept_eula = messagebox.askyesno("Acuerdo de licencia", "¿Aceptas los términos del Acuerdo de Licencia de Usuario Final (EULA) de SaRACmd?")
+        root.destroy()
+
+        if not accept_eula:
+            print(Fore.YELLOW + "La desinstalación fue cancelada porque no se aceptó el EULA.")
+            return
+
+        print(Fore.RED + "Ejecutando desinstalación de Office con SaRACmd.exe...")
+        result = subprocess.run(
+            [sara_exe_path, "-S", "OfficeScrubScenario", "-AcceptEula"],
+            cwd=os.path.dirname(sara_exe_path),
+            capture_output=True,
+            text=True
+        )
+
+        if result.returncode == 0:
+            print(Fore.GREEN + "Desinstalación completada exitosamente con SaRACmd.exe.")
         else:
-            error_message = process.stderr.read()
-            log_error(f"Error al ejecutar el script de desinstalación: {error_message}")
+            log_error(f"Error al ejecutar SaRACmd.exe:\n{result.stderr.strip()}")
 
     except Exception as e:
-        log_error(f"Error al ejecutar el script de desinstalación: {e}")
-    finally:
-        if os.path.exists(script_path):
-            os.remove(script_path)
+        log_error(f"Error durante la ejecución de SaRACmd.exe: {e}")
 
-def create_office_selection_window(install_folder):
-    local_exe_folder = os.path.join(files_dir, "InstallOfficeFiles")
-    os.makedirs(local_exe_folder, exist_ok=True)
-    install_folder = local_exe_folder
+def create_office_selection_window():
 
     def on_closing():
-        if messagebox.askyesno("Eliminar archivos temporales", "¿Deseas eliminar los archivos temporales creados por el script?"):
-            try:
-                remove_temp_folder(install_folder)
-                messagebox.showinfo("Archivos eliminados", "Los archivos temporales han sido eliminados.")
-                sys.exit(0)
-            except Exception as e:
-                messagebox.showwarning("Error", f"No se pudieron eliminar los archivos temporales: {e}")
-                sys.exit(1)
-        root.destroy()
+        messagebox.showwarning("Advertencia", "Instalación de Office cancelada...")
+        remove_temp_folder()
 
     all_apps = {
         "Office Standard 2013": ["Word", "Excel", "PowerPoint", "Outlook", "OneNote", "Publisher", "Groove"],
@@ -301,6 +303,10 @@ def create_office_selection_window(install_folder):
     }
 
     def generate_configuration(selected_version, product_id, channel, bits, language, remove_msi, selected_apps):
+        success = download_and_extract_ODT(selected_version)
+        if not success:
+            messagebox.showerror("Error", "No se pudo descargar y extraer ODT.")
+            sys.exit(1)
         remove_msi_tag = "\n    <RemoveMSI />" if remove_msi else ""
         available_apps = all_apps.get(selected_version, [])
         apps_to_exclude = [app for app in available_apps if app not in selected_apps]
@@ -324,6 +330,7 @@ def create_office_selection_window(install_folder):
         file_name = os.path.join(install_folder, "configuration.xml")
         with open(file_name, 'w') as file:
             file.write(config)
+            print(f"Archivo de configuración generado exitosamente en: {file_name}")
             root.destroy()
         return file_name
 
@@ -384,9 +391,9 @@ def create_office_selection_window(install_folder):
         if not product_id or not channel:
             messagebox.showerror("Error", "No se pudo encontrar la configuración para la versión seleccionada.")
             return
-
+        
         generate_configuration(selected_version, product_id, channel, bits, language, remove_msi, selected_apps)
-        download_and_extract_ODT(selected_version, install_folder)
+
     root = tk.Tk()
     root.title("Selector de Versiones de Microsoft Office")
     root.geometry("435x600")
@@ -443,17 +450,15 @@ def create_office_selection_window(install_folder):
 
     root.mainloop()
 
-def download_and_extract_ODT(selected_version, install_folder):
+def download_and_extract_ODT(selected_version):
     url = ODT_2013 if "2013" in selected_version else ODT_2016_2019_LTSC2021_LTSC2024_365
-
     if not url:
         log_error("La URL proporcionada es inválida.")
-        return
+        return False
 
     try:
-        temp_download_folder = tempfile.mkdtemp()
         exe_file_name = os.path.basename(urlparse(url).path)
-        exe_file_path = os.path.join(temp_download_folder, exe_file_name)
+        exe_file_path = os.path.join(install_folder, exe_file_name)
 
         print(f"Descargando ODT desde: {url}")
         response = requests.get(url, stream=True)
@@ -466,56 +471,72 @@ def download_and_extract_ODT(selected_version, install_folder):
             for chunk in response.iter_content(chunk_size=8192):
                 file.write(chunk)
                 bar.update(len(chunk))
-
-        print(f"Archivo descargado en: {exe_file_path}")
     except Exception as e:
         log_error(f"Error al descargar ODT: {e}")
-        return
+        return False
 
     try:
-        print(f"Extrayendo archivos en: {temp_download_folder}")
-        subprocess.run(
-            [exe_file_path, "/quiet", f"/extract:{temp_download_folder}"],
-            check=True
+        command = [exe_file_path, "/quiet", f"/extract:{install_folder}"]
+        result = subprocess.run(
+            command,
+            cwd=install_folder,
+            capture_output=True,
+            text=True
         )
-        print("Extracción completada.")
-    except subprocess.CalledProcessError as e:
-        log_error(f"Error al extraer ODT: {e}")
-        return
+
+        if result.returncode != 0:
+            log_error(f"Error al extraer ODT:\n{result.stderr.strip()}")
+            return False
+
     except Exception as e:
-        log_error(f"Error desconocido durante la extracción: {e}")
+        log_error(f"Error inesperado durante la extracción de ODT: {e}")
+        return False
+
+    setup_file = os.path.join(install_folder, "setup.exe")
+    if not os.path.exists(setup_file):
+        log_error(f"'setup.exe' no encontrado en {install_folder}.")
+        return False
+
+    return True
+
+def run_setup_commands():
+    setup_path = os.path.join(install_folder, "setup.exe")
+    config_path = os.path.join(install_folder, "configuration.xml")
+
+    if not os.path.exists(setup_path):
+        log_error("No se encontró 'setup.exe' en la carpeta de instalación.")
+        print("Error: 'setup.exe' no está disponible.")
         return
 
+    if not os.path.exists(config_path):
+        log_error("No se encontró 'configuration.xml' en la carpeta de instalación.")
+        print("Error: 'configuration.xml' no está disponible.")
+        return
+
+    command = [setup_path, "/configure", config_path]
+
     try:
-        setup_file = os.path.join(temp_download_folder, "setup.exe")
-        if os.path.exists(setup_file):
-            shutil.copy(setup_file, install_folder)
-            print(f"'setup.exe' copiado con éxito a: {install_folder}")
+        print(Fore.YELLOW + "Instalando Microsoft Office. Por favor, no cierre esta ventana...")
+        result = subprocess.run(
+            command,
+            cwd=install_folder,
+            capture_output=True,
+            text=True
+        )
+
+        if result.returncode == 0:
+            print(Fore.GREEN + "Instalación completada exitosamente.")
         else:
-            log_error(f"'setup.exe' no encontrado en {temp_download_folder}.")
+            log_error(f"Error al ejecutar setup.exe:\nCódigo: {result.returncode}\n{result.stderr.strip()}")
+            print(Fore.RED + f"La instalación falló. Código de error: {result.returncode}")
+
     except Exception as e:
-        log_error(f"Error al copiar 'setup.exe': {e}")
+        log_error(f"Error inesperado durante la instalación: {e}")
+        print(Fore.RED + "Ocurrió un error inesperado durante la instalación.")
 
-    finally:
-        shutil.rmtree(temp_download_folder, ignore_errors=True)
-
-def run_setup_commands(install_folder):
-    command = ["cmd", "/c", "setup.exe", "/configure", "configuration.xml"]
-    working_directory = install_folder
-
-    try:
-        print(Fore.RED + f"Por favor, no cierre esta ventana. Se Instalará la Versión de Microsoft Office Seleccionada...")
-        subprocess.run(command, cwd=working_directory, stdout=sys.stdout, stderr=sys.stderr, check=True)
-        print("Instalación completada")
-    except FileNotFoundError as e:
-        log_error(f"El archivo setup.exe no se encuentra en la ubicación esperada: {e}")
-    except Exception as e:
-        log_error(f"Error al ejecutar comando: {e}")
-        sys.exit(1)
 
 def log_error(error_message):
     try:
-        logs_folder = os.path.join(files_dir, "logs")
         os.makedirs(logs_folder, exist_ok=True)
 
         log_path = os.path.join(logs_folder, "log_error.txt")
@@ -526,119 +547,76 @@ def log_error(error_message):
     except Exception as e:
         print(f"Error al registrar el log_error: {e}")
 
-def check_log_retention(log_path):
-    try:
-        if os.path.exists(log_path):
-            with open(log_path, "r", encoding="utf-8") as log_file:
-                lines = log_file.readlines()
-
-            if lines:
-                last_line = lines[-1]
-                last_log_time_str = last_line.split(" - ")[0]
-                last_log_time = datetime.datetime.strptime(last_log_time_str, "%Y-%m-%d %H:%M:%S")
-
-                current_time = datetime.datetime.now()
-                retention_period = datetime.timedelta(days=30)
-
-                if current_time - last_log_time >= retention_period:
-                    os.remove(log_path)
-
     except Exception as e:
         print(f"Error al comprobar o eliminar el archivo de log: {e}")
 
-def check_install_folder():
-    install_folder = os.path.join(files_dir, "InstallOfficeFiles")
-
-    try:
-        if os.path.exists(install_folder):
-            shutil.rmtree(install_folder)
-
-    except OSError as e:
-        log_error(f"Error al crear el directorio {install_folder}: {e}")
-        raise
-
-    return install_folder
-
-def remove_temp_folder(install_folder):
+def remove_temp_folder():
     root = tk.Tk()
     root.withdraw()
     root.attributes('-topmost', True)
+
     if not messagebox.askyesno("Eliminar archivos temporales", "¿Deseas eliminar los archivos temporales creados por el script?"):
         messagebox.showinfo("Cancelado", "No se eliminaron los archivos temporales.")
+        root.destroy()
         return
 
     try:
-        for folder in [install_folder]:
-            if os.path.isdir(folder):
-                shutil.rmtree(folder)
-        
-        messagebox.showinfo("Archivos eliminados", "Los archivos temporales han sido eliminados correctamente.")
-        sys.exit(0)
+        if os.path.isdir(temp_dir) and temp_dir.startswith(tempfile.gettempdir()):
+            shutil.rmtree(temp_dir)
+            messagebox.showinfo("Archivos eliminados", "Los archivos temporales han sido eliminados correctamente.")
+        else:
+            messagebox.showwarning("Advertencia", "Ruta temporal inválida. No se eliminaron archivos.")
     except Exception as e:
         messagebox.showwarning("Error", f"No se pudieron eliminar los archivos temporales: {e}")
-        sys.exit(1)
-
-    sys.exit(0)
-
-def is_admin():
-    try:
-        return ctypes.windll.shell32.IsUserAnAdmin() != 0
-    except Exception as e:
-        log_error(f"Error al verificar privilegios de administrador: {e}")
-        return False
+    finally:
+        root.destroy()
+        sys.exit(0)
 
 def manage_installation():
-    check_log_retention(os.path.join(files_dir, "logs", "log_error.txt"))
-
-    install_folder = check_install_folder()
 
     detect_office = input("¿Desea detectar las versiones de Office instaladas? (S/N): ").strip().lower()
     if detect_office == 's':
-        office_names = detect_office_version(install_folder)
-        uninstall_decision = ask_uninstall_and_proceed(install_folder, office_names)
+        detect_office_version()
+        uninstall_decision = ask_uninstall_and_proceed()
     else:
         print(Fore.RED + "Advertencia: Tener más de una versión de Office instalada puede ocasionar problemas.")
-        uninstall_decision = ask_proceed_installation(install_folder)
+        uninstall_decision = ask_proceed_installation()
 
     if uninstall_decision:
         print("Instalación completada.")
     else:
         print("Proceso cancelado.")
-        remove_temp_folder(install_folder)
+        remove_temp_folder()
 
-def ask_uninstall_and_proceed(install_folder,installations):
+def ask_uninstall_and_proceed():
     uninstall_office = input("¿Desea desinstalar todas las versiones de Office encontradas? (S/N): ").strip().lower()
     if uninstall_office == 's':
-        for installation in installations:
-            uninstall_office_version(installation)
-            ask_proceed_installation(install_folder)
+        download_extract_execute_SaRACmd()
+        ask_proceed_installation()
     else:
         print(Fore.RED + "Advertencia: Tener más de una versión de Office instalada puede ocasionar problemas.")
-        ask_proceed_installation(install_folder)
+        ask_proceed_installation()
 
-def ask_proceed_installation(install_folder):
-    proceed_install = input("¿Desea proceder con la instalación de Office? (S/N): ").strip().lower()
+def ask_proceed_installation():
+    proceed_install = input("¿Desea proceder con una nueva instalación de Office? (S/N): ").strip().lower()
     if proceed_install == 's':
-        print("Iniciando instalación de Office...")
-        execute_installation_process(install_folder)
+        print("Iniciando configuración de instalación de Office...")
+        execute_installation_process()
     else:
         print("Proceso cancelado.")
-        remove_temp_folder(install_folder)
+        remove_temp_folder()
 
-def execute_installation_process(install_folder):
-    create_office_selection_window(install_folder)
+def execute_installation_process():
+    os.makedirs(install_folder, exist_ok=True)
+    create_office_selection_window()
 
-    install_thread = threading.Thread(target=run_setup_commands, args=(install_folder,))
+    install_thread = threading.Thread(target=run_setup_commands)
     install_thread.start()
     install_thread.join()
 
-    remove_temp_folder(install_folder)
+    remove_temp_folder()
 
 def main():
-    if not is_admin():
-        print("Este script necesita ejecutarse con privilegios de administrador para continuar.")
-        input("Presiona Enter para salir y vuelve a ejecutar como administrador...")
-        sys.exit(0)
     init(autoreset=True)
     manage_installation()
 
