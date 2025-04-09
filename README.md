@@ -12,6 +12,8 @@ Este proyecto tiene como objetivo facilitar la instalación y desinstalación de
 
 ## Características
 
+> A partir de la versión 4.0, se eliminó el uso de los antiguos scripts `.vbs` de OffScrub para reducir la complejidad y evitar falsos positivos generados por algunos antivirus. Ahora la desinstalación se realiza exclusivamente mediante SaRA.
+
 - ✅ **Instalación y desinstalación automatizada** mediante un único ejecutable.
 - ✅ **Detección de versiones instaladas de Office**.
 - ✅ **Desinstalación limpia con SaRA**.
