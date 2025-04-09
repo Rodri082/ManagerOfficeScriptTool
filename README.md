@@ -66,6 +66,8 @@ Este proyecto tiene como objetivo facilitar la instalación y desinstalación de
 
 ## Compilación desde el código fuente
 
+> Para una lista completa de bibliotecas utilizadas en el script, consulta la sección correspondiente en el archivo [`RELEASE.md`](./RELEASE.md).
+
 El proyecto se empaqueta con **PyInstaller 6.12.0** utilizando **Python 3.13.2**. Se incluye el archivo `ManagerOfficeScriptTool.spec` para permitir compilar localmente:
 
 ```bash
