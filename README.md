@@ -1,59 +1,106 @@
 # ManagerOfficeScriptTool - Instalación y Desinstalación Automática de Office
-Este proyecto tiene como objetivo facilitar la instalación y desinstalación de Microsoft Office en equipos Windows mediante un script Python. El proceso es compatible con versiones de Office 2013, 2016, 2019, LTSC-2021, LTSC-2024 y 365. (Versiones de 32 y 64 Bits)
 
-## Descripción
-Este repositorio contiene un script en Python que automatiza la instalación y desinstalación de Office en equipos Windows. El flujo de trabajo está diseñado para detectar y eliminar versiones previas de Office antes de proceder con la instalación de una nueva versión.
+Este proyecto tiene como objetivo facilitar la instalación y desinstalación de Microsoft Office en equipos Windows mediante un script Python. El proceso es compatible con versiones de Office 2013, 2016, 2019, LTSC-2021, LTSC-2024 y 365 (32 y 64 Bits).
+
+## ¿Qué es ManagerOfficeScriptTool?
+
+`ManagerOfficeScriptTool` es una herramienta automatizada para la instalación y limpieza de versiones de Microsoft Office, empaquetada en un único ejecutable listo para usar. A partir de la versión **4.0**, el proyecto se compila exclusivamente con **PyInstaller**, eliminando el uso de `cx_Freeze`.
+
+> El código fuente es completamente abierto. Cualquier usuario puede auditarlo, revisar su comportamiento y compilar su propia versión utilizando el archivo `.spec` incluido.
+
+---
 
 ## Características
-- **Instalación y desinstalación automatizada**: Todo el proceso se realiza mediante un único archivo ejecutable `ManagerOfficeScriptTool.exe`.
-- **Detección de versiones de Office**: El script ahora detecta las versiones de Office instaladas directamente.
-- **Desinstalación con OffScrub**: El script utiliza **Scripts OffScrub** para desinstalar versiones anteriores de Office.
+
+- ✅ **Instalación y desinstalación automatizada** mediante un único ejecutable.
+- ✅ **Detección de versiones instaladas de Office**.
+- ✅ **Desinstalación limpia con SaRA**.
+- ✅ **Instalación de nuevas versiones con Office Deployment Tool (ODT)**.
+- ✅ **Soporte para Office 2013, 2016, 2019, LTSC-2021, LTSC-2024 y Microsoft 365**.
+- ✅ **Modo gráfico (Tkinter)** para configuración interactiva.
+- ✅ **Solicita permisos de administrador al ejecutarse** (gracias al manifiesto o `--uac-admin`).
+
+---
 
 ## Requisitos
-- **Dependencias**: El script está empaquetado como un archivo ejecutable `ManagerOfficeScriptTool.exe`, por lo que no deberia ser necesario tener Python instalado.
 
-## Instalación de ManagerOfficeScriptTool
-1. **Descargar**:
-   - Puedes elegir entre dos opciones de descarga:
-     - El archivo `.exe` empaquetado con **PyInstaller** utilizando Python 3.13.1.
-     - El archivo `.zip` empaquetado con **cx_Freeze** utilizando Python 3.12.8.
-   - Descarga desde el siguiente enlace: [ManagerOfficeScriptTool releases](https://github.com/Rodri082/ManagerOfficeScriptTool/releases).
+- Windows 10 o superior.
+- Acceso a internet (para descargar ODT y herramientas de limpieza).
+- No es necesario tener Python instalado: se distribuye como `.exe` autónomo.
 
-2. **Descomprimir** (solo si descargaste el archivo `.zip`):
-   - Si optaste por el archivo `.zip`, extrae su contenido en una ubicación de tu elección.
+---
 
-3. **Ejecutar**:
-   - Si descargaste el archivo `.exe`, simplemente ejecútalo.
-   - Si descargaste el archivo `.zip`, navega al directorio donde extrajiste los archivos y ejecuta `ManagerOfficeScriptTool.exe`.
-   - El programa se encargará de la instalación o desinstalación de Office según las opciones que selecciones durante el proceso.
+## Instalación
+
+1. **Descargar la versión más reciente** desde la página de [Releases en GitHub](https://github.com/Rodri082/ManagerOfficeScriptTool/releases).
+
+2. **Ejecutar el archivo** `ManagerOfficeScriptTool.exe` como administrador. El programa detectará versiones instaladas de Office, ofrecerá desinstalarlas, y permitirá instalar una nueva versión desde una GUI.
+
+3. **Listo**. No requiere instalación adicional ni dependencias externas.
+
+> Nota: Las versiones anteriores incluían una opción empaquetada con `cx_Freeze`, pero desde la versión 4.0 esta opción ha sido retirada para unificar el proceso de construcción con PyInstaller.
+
+---
 
 ## Uso
-1. **Ejecución inicial**: Al ejecutar el archivo `ManagerOfficeScriptTool.exe`, el sistema comprobará si está ejecutándose con permisos de administrador. Si no es así, se solicitará que vuelva a ejecutar con permisos elevados.
-2. **Detección de versiones de Office**: El script detectará automáticamente las versiones de Office instaladas en el sistema.
-3. **Desinstalación de versiones previas (si es necesario)**:
-    - Si se detectan versiones de Office instaladas, el usuario puede optar por desinstalar esas versiones usando scripts [.vbs]().
-    - Si el usuario elige no desinstalar las versiones previas, se le advertirá sobre posibles conflictos.
-4. **Instalación de una nueva versión de Office**: Después de la desinstalación (si es necesario), el script procederá a instalar la nueva versión de Office utilizando la **Office Deployment Tool (ODT)**.
 
-## Archivos descargados automáticamente
-Durante la ejecución del script, se descargan los siguientes archivos:
-   - **ODT (Office Deployment Tool)**: El script descargará el archivo ejecutable de ODT desde los enlaces oficiales de Microsoft según la versión de Office seleccionada:
-        - Office 2013: [ODT 2013](https://www.microsoft.com/en-us/download/details.aspx?id=36778)
-        - Office 2016/2019/LTSC-2021/LTSC-2024/365: [ODT 2016/2019/LTSC-2021/LTSC-2024/365](https://www.microsoft.com/en-us/download/details.aspx?id=49117)
-   - **Scripts de desinstalación**: Se descargan desde el repositorio de GitHub [Office-IT-Pro-Deployment-Scripts](https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts):
-        - [OffScrub03.vbs](https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts/blob/master/Office-ProPlus-Deployment/Remove-PreviousOfficeInstalls/OffScrub03.vbs)
-        - [OffScrub07.vbs](https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts/blob/master/Office-ProPlus-Deployment/Remove-PreviousOfficeInstalls/OffScrub07.vbs)
-        - [OffScrub10.vbs](https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts/blob/master/Office-ProPlus-Deployment/Remove-PreviousOfficeInstalls/OffScrub10.vbs)
-        - [OffScrub_O15msi.vbs](https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts/blob/master/Office-ProPlus-Deployment/Remove-PreviousOfficeInstalls/OffScrub_O15msi.vbs)
-        - [OffScrub_O16msi.vbs](https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts/blob/master/Office-ProPlus-Deployment/Remove-PreviousOfficeInstalls/OffScrub_O16msi.vbs)
-        - [OffScrubc2r.vbs](https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts/blob/master/Office-ProPlus-Deployment/Remove-PreviousOfficeInstalls/OffScrubc2r.vbs)
+1. **Inicio**: Al ejecutar el `.exe`, se solicitará elevación de permisos (UAC).
+2. **Detección de Office**: El script escaneará el sistema y mostrará las versiones de Office instaladas.
+3. **Desinstalación limpia (opcional)**: Se podrá elegir desinstalar versiones anteriores mediante SaRA.
+4. **Instalación de nueva versión**: Se abrirá una interfaz para seleccionar versión, arquitectura, idioma y apps a instalar.
+5. **Configuración**: El script generará un `configuration.xml` compatible con ODT y ejecutará la instalación de Office.
+
+---
+
+## Archivos que descarga
+
+- **Office Deployment Tool (ODT)** desde los enlaces oficiales de Microsoft:
+  - [ODT 2013](https://www.microsoft.com/en-us/download/details.aspx?id=36778)
+  - [ODT 2016/2019/LTSC/365](https://www.microsoft.com/en-us/download/details.aspx?id=49117)
+
+- **SaRA Enterprise ZIP** desde [https://aka.ms/SaRA_EnterpriseVersionFiles](https://learn.microsoft.com/es-es/microsoft-365/troubleshoot/administration/sara-command-line-version)
+
+---
+
+## Compilación desde el código fuente
+
+El proyecto se empaqueta con **PyInstaller 6.12.0** utilizando **Python 3.13.2**. Se incluye el archivo `ManagerOfficeScriptTool.spec` para permitir compilar localmente:
+
+```bash
+pyinstaller ManagerOfficeScriptTool.spec
+```
+
+> Es importante ejecutar la consola como administrador si vas a generar el `.exe` final.
+
+También podés compilar manualmente con:
+
+```bash
+pyinstaller --onefile --icon=icon.ico --noupx --uac-admin ManagerOfficeScriptTool.py
+```
+
+> Requiere `pyinstaller-hooks-contrib` versión 2025.2 o superior.
+
+---
+
+## Transparencia
+
+Este proyecto es 100% **open source**. No realiza conexiones sospechosas, no instala software de terceros, ni recopila información del usuario. Todas las herramientas utilizadas provienen de fuentes oficiales de Microsoft.
+
+Puedes revisar, modificar o compilar el script por tu cuenta. Se alienta a la comunidad a auditar el código para confirmar su integridad.
+
+---
 
 ## Créditos
-Este proyecto utiliza herramientas y scripts de los siguientes repositorios de Microsoft:
-- **[Office IT Pro Deployment Scripts](https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts)**  
-  Este repositorio proporciona varios scripts para la desinstalación de instalaciones anteriores de Office.
-- **[Office Deployment Tool (ODT)](http://aka.ms/ODT)**  
-  ODT es una herramienta de Microsoft utilizada para la instalación y configuración de Office. Este proyecto automatiza su uso para instalar y configurar las versiones de Office.
+
+- **[Office IT Pro Deployment Scripts](https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts)**
+- **[Office Deployment Tool (ODT)](http://aka.ms/ODT)**
+- **[SaRA - Support and Recovery Assistant](https://www.microsoft.com/en-us/download/details.aspx?id=57302)**
+
+---
 
 ## Licencia
-Este proyecto está licenciado bajo la MIT License - ver el archivo [LICENSE](./LICENSE) para más detalles.
+
+Este proyecto está licenciado bajo la [Licencia MIT](./LICENSE).
+
+---
+
