@@ -94,7 +94,7 @@ Puedes revisar, modificar o compilar el script por tu cuenta. Se alienta a la co
 
 - **[Office IT Pro Deployment Scripts](https://github.com/OfficeDev/Office-IT-Pro-Deployment-Scripts)**
 - **[Office Deployment Tool (ODT)](http://aka.ms/ODT)**
-- **[SaRA - Support and Recovery Assistant](https://www.microsoft.com/en-us/download/details.aspx?id=57302)**
+- **[SaRA - Support and Recovery Assistant](https://learn.microsoft.com/es-es/microsoft-365/troubleshoot/administration/sara-command-line-version)**
 
 ---
 
