@@ -102,6 +102,20 @@ Puedes revisar, modificar o compilar el script por tu cuenta. Se alienta a la co
 
 ---
 
+## Estado del Proyecto
+
+Este proyecto se encuentra en un estado **activo y estable**. Ha pasado de ser un simple script funcional a una herramienta profesional, automatizada y segura para la instalación y desinstalación de Microsoft Office en sistemas Windows.
+
+### 🛠 Planes Futuros (sujetos a evaluación)
+- Reemplazo completo de la consola por una **interfaz gráfica enriquecida**.
+  - El log de instalación se mostrará en una ventana tipo terminal (`ScrolledText`) con scroll y colores para errores/éxitos.
+  - Se incluirá una opción para **guardar el log en un archivo `.txt`**.
+  - Se integrará una **barra de progreso indeterminada** mientras se realiza la instalación de Office, mejorando la experiencia visual sin necesidad de mostrar progreso exacto.
+- Reemplazo total de la consola por una **interfaz gráfica completa**, en la cual todos los mensajes actualmente mostrados por consola se integren visualmente en la aplicación (Tkinter).
+- Inclusión de más idiomas.
+
+Contribuciones, ideas o reportes de errores son bienvenidos.
+
 ## Licencia
 
 Este proyecto está licenciado bajo la [Licencia MIT](./LICENSE).
