@@ -60,7 +60,7 @@ Este proyecto tiene como objetivo facilitar la instalación y desinstalación de
   - [ODT 2013](https://www.microsoft.com/en-us/download/details.aspx?id=36778)
   - [ODT 2016/2019/LTSC/365](https://www.microsoft.com/en-us/download/details.aspx?id=49117)
 
-- **SaRA Enterprise ZIP** desde [SaRA_EnterpriseVersion](https://learn.microsoft.com/es-es/microsoft-365/troubleshoot/administration/sara-command-line-version)
+- **SaRA ComandLineVersion ZIP** desde [SaRA_CommandLineVersion](https://aka.ms/SaRA_CommandLineVersion )
 
 ---
 
