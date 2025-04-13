@@ -78,7 +78,7 @@ pyinstaller ManagerOfficeScriptTool.spec
 También podés compilar manualmente con:
 
 ```bash
-pyinstaller --onefile --icon=icon.ico --noupx --uac-admin ManagerOfficeScriptTool.py
+pyinstaller --onefile --icon=icon.ico --uac-admin ManagerOfficeScriptTool.py
 ```
 
 
