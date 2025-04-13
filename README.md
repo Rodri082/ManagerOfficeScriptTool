@@ -74,7 +74,6 @@ El proyecto se empaqueta con **PyInstaller 6.12.0** utilizando **Python 3.13.2**
 pyinstaller ManagerOfficeScriptTool.spec
 ```
 
-> Es importante ejecutar la consola como administrador si vas a generar el `.exe` final.
 
 También podés compilar manualmente con:
 
@@ -82,7 +81,6 @@ También podés compilar manualmente con:
 pyinstaller --onefile --icon=icon.ico --noupx --uac-admin ManagerOfficeScriptTool.py
 ```
 
-> Requiere `pyinstaller-hooks-contrib` versión 2025.2 o superior.
 
 ---
 
