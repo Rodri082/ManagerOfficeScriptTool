@@ -19,9 +19,8 @@ copies or substantial portions of the Software.
 This project downloads and uses official Microsoft tools for installing and uninstalling Office:
 
 - **Office Deployment Tool (ODT)**  
-  The ODT is an official tool from Microsoft used to configure, install, and uninstall Office.  
-  This project automates its download from [https://aka.ms/ODT](https://aka.ms/ODT).  
-  Please note that the ODT is **not covered under the MIT license** and is subject to Microsoft’s own licensing terms.
+  The ODT is an official tool from Microsoft used to configure, install, and uninstall Office.
+  Please note that the [ODT](https://aka.ms/ODT) is **not covered under the MIT license** and is subject to Microsoft’s own licensing terms.
 
 ---
 
