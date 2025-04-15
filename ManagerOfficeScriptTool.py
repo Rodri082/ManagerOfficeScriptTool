@@ -759,10 +759,7 @@ class OfficeUninstaller:
                 text=True,
                 check=True,
             )
-            print(
-                Fore.GREEN
-                + f"Desinstalación completada exitosamente para {self.installation.name}."
-            )
+            
             logging.info(f"Office desinstalado: {self.installation.name}")
             return True
 
@@ -784,8 +781,8 @@ class OfficeUninstaller:
         """
         if self.ejecutar_desinstalacion():
             return f"Desinstalado: {self.installation.name}"
-        return None
-
+        else:
+            return f"Error al desinstalar: {self.installation.name}"
 
 class OfficeInstaller:
     """
