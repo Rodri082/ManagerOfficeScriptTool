@@ -12,11 +12,17 @@ furnished to do so, subject to the following conditions:
 The above copyright notice and this permission notice shall be included in all
 copies or substantial portions of the Software.
 
-The following scripts are used in this project and are licensed under the MIT License by Microsoft:
+---
 
-- **SaRA_CommandLineVersion** is a command-line tool from Microsoft Support and Recovery Assistant (SaRA) that simplifies the uninstallation of previous versions of Office automatically. This project uses **SaRACmd.exe** to manage the removal of older Office installations, streamlining the process for users by eliminating the need for manual uninstallation or additional PowerShell scripts.
+### Third-Party Tools Used
 
-- **Microsoft Office Deployment Tool**  
-  The ODT is used for the installation and configuration of Office, and is automatically downloaded as part of the installation process in this project.
+This project downloads and uses official Microsoft tools for installing and uninstalling Office:
+
+- **Office Deployment Tool (ODT)**  
+  The ODT is an official tool from Microsoft used to configure, install, and uninstall Office.  
+  This project automates its download from [https://aka.ms/ODT](https://aka.ms/ODT).  
+  Please note that the ODT is **not covered under the MIT license** and is subject to Microsoft’s own licensing terms.
+
+---
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
