@@ -759,7 +759,7 @@ class OfficeUninstaller:
                 text=True,
                 check=True,
             )
-            
+
             logging.info(f"Office desinstalado: {self.installation.name}")
             return True
 
