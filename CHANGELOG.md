@@ -4,7 +4,42 @@ Historial de cambios del proyecto **ManagerOfficeScriptTool**
 
 ---
 
-## [4.0] - 2025-04-09
+## [4.0] - 2025-04-15
+### ✨ Renovación Total del Script
+- Refactorización completa en **programación orientada a objetos**: separación en clases (`OfficeManager`, `ODTManager`, `OfficeUninstaller`, `OfficeInstaller`, `OfficeSelectionWindow`, `RegistryReader`).
+- Código modular, mantenible y preparado para futuras mejoras.
+
+### 🌐 Descarga dinámica del ODT
+- Implementación de `selenium` y `webdriver-manager` para extraer la **URL oficial desde Microsoft**, asegurando compatibilidad incluso si el portal cambia.
+- Verificación de nombre, tamaño y dominio del archivo descargado.
+
+### 🔐 Registro seguro y robusto
+- Nueva clase `RegistryReader` con **caché de valores**, sanitización de rutas del registro y manejo elegante de errores.
+- Logging detallado y seguro en `logs/application.log`.
+
+### 🖥 Interfaz gráfica mejorada
+- Rediseño completo de la GUI: selección intuitiva de versión, idioma, arquitectura y apps.
+- Posibilidad de excluir aplicaciones antes de la instalación.
+
+### 🧼 Desinstalación limpia y moderna
+- Eliminación definitiva del uso de **SaRA y OffScrub**.
+- Desinstalación ahora gestionada exclusivamente con ODT (`setup.exe` + `configuration.xml`).
+
+### 🧹 Rutas seguras y manejo de archivos temporales
+- Uso completo de `pathlib` para rutas más claras y seguras.
+- Limpieza de carpetas temporales solo tras confirmación del usuario.
+
+### ⚙️ Compilación
+- Compilado con:
+  - Python **3.13.3**
+  - PyInstaller **6.12.0**
+  - pyinstaller-hooks-contrib **2025.2**
+- SHA256 del ejecutable publicado y verificado en VirusTotal:  
+  `de137932cdc26c726147bb19ac0472b7b163426f020cc6126bf55d3743448c49`
+
+---
+
+## [3.0] - 2025-04-09
 ### Cambios destacados
 - Eliminado completamente el uso de scripts `.vbs` de OffScrub.
 - SaRA se utiliza exclusivamente para la desinstalación de Office.
