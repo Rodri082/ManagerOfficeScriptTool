@@ -4,32 +4,32 @@ Historial de cambios del proyecto **ManagerOfficeScriptTool**
 
 ---
 
-## [4.0] - 2025-04-15
-### ✨ Renovación Total del Script
+## [4.0] - 2025-04-14
+### Renovación Total del Script
 - Refactorización completa en **programación orientada a objetos**: separación en clases (`OfficeManager`, `ODTManager`, `OfficeUninstaller`, `OfficeInstaller`, `OfficeSelectionWindow`, `RegistryReader`).
 - Código modular, mantenible y preparado para futuras mejoras.
 
-### 🌐 Descarga dinámica del ODT
+### Descarga dinámica del ODT
 - Implementación de `selenium` y `webdriver-manager` para extraer la **URL oficial desde Microsoft**, asegurando compatibilidad incluso si el portal cambia.
 - Verificación de nombre, tamaño y dominio del archivo descargado.
 
-### 🔐 Registro seguro y robusto
+### Registro seguro y robusto
 - Nueva clase `RegistryReader` con **caché de valores**, sanitización de rutas del registro y manejo elegante de errores.
 - Logging detallado y seguro en `logs/application.log`.
 
-### 🖥 Interfaz gráfica mejorada
+### Interfaz gráfica mejorada
 - Rediseño completo de la GUI: selección intuitiva de versión, idioma, arquitectura y apps.
 - Posibilidad de excluir aplicaciones antes de la instalación.
 
-### 🧼 Desinstalación limpia y moderna
+### Desinstalación limpia y moderna
 - Eliminación definitiva del uso de **SaRA y OffScrub**.
 - Desinstalación ahora gestionada exclusivamente con ODT (`setup.exe` + `configuration.xml`).
 
-### 🧹 Rutas seguras y manejo de archivos temporales
+### Rutas seguras y manejo de archivos temporales
 - Uso completo de `pathlib` para rutas más claras y seguras.
 - Limpieza de carpetas temporales solo tras confirmación del usuario.
 
-### ⚙️ Compilación
+### Compilación
 - Compilado con:
   - Python **3.13.3**
   - PyInstaller **6.12.0**
@@ -39,7 +39,7 @@ Historial de cambios del proyecto **ManagerOfficeScriptTool**
 
 ---
 
-## [3.0] - 2025-04-09
+## [3.0] - 2025-04-08
 ### Cambios destacados
 - Eliminado completamente el uso de scripts `.vbs` de OffScrub.
 - SaRA se utiliza exclusivamente para la desinstalación de Office.
@@ -54,7 +54,7 @@ Historial de cambios del proyecto **ManagerOfficeScriptTool**
 
 ---
 
-## [2.6] - 2024-XX-XX
+## [2.6] - 2025-03-28
 ### Correcciones y Mejoras
 - ComboBox configurado como solo lectura (`readonly`) para prevenir errores de entrada.
 - Actualización de dependencias y migración a Python de 64 bits para mejorar compatibilidad y reducir falsos positivos.
@@ -63,7 +63,7 @@ Historial de cambios del proyecto **ManagerOfficeScriptTool**
 
 ---
 
-## [2.2] - 2024-XX-XX
+## [2.2] - 2024-12-22
 ### Descripción
 - Primera versión pública combinando PyInstaller (.exe) y cx_Freeze (.zip).
 - Eliminación de scripts externos como `Install.ps1`, `RunInstallOffice.bat` y carpeta `Files`.
@@ -73,7 +73,7 @@ Historial de cambios del proyecto **ManagerOfficeScriptTool**
 
 ---
 
-## [1.0-alpha] - 2024-XX-XX
+## [1.0-alpha] - 2024-12-16
 ### Primer release (pre-release)
 - Capacidad de ejecutar como `.exe` mediante cx_Freeze.
 - Eliminación de `Install.ps1` y `RunInstallOffice.bat`.
