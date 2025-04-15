@@ -12,7 +12,7 @@ import tkinter.ttk as ttk
 import winreg
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Tuple
 from urllib.parse import urlparse
 
 # Módulos de terceros
@@ -772,17 +772,18 @@ class OfficeUninstaller:
 
         return False
 
-    def execute(self) -> Optional[str]:
+    def execute(self) -> str:
         """
         Punto de entrada externo para iniciar la desinstalación.
 
         Returns:
-            Optional[str]: Mensaje de estado si la desinstalación fue exitosa, None si falló.
+            str: Mensaje de estado coloreado según el resultado.
         """
         if self.ejecutar_desinstalacion():
-            return f"Desinstalado: {self.installation.name}"
+            return f"{Fore.GREEN}Desinstalado: {self.installation.name}"
         else:
-            return f"Error al desinstalar: {self.installation.name}"
+            return f"{Fore.RED}Error al desinstalar: {self.installation.name}"
+
 
 class OfficeInstaller:
     """
