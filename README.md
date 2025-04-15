@@ -79,7 +79,7 @@ pyinstaller ManagerOfficeScriptTool.spec
 O bien manualmente:
 
 ```bash
-pyinstaller --onefile --icon=icon.ico --uac-admin ManagerOfficeScriptTool.py
+pyinstaller --onefile --uac-admin ManagerOfficeScriptTool.py
 ```
 
 ---
