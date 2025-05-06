@@ -1,6 +1,8 @@
 # Módulos integrados
 import logging
+import os
 import platform
+import random
 import re
 import shutil
 import subprocess
@@ -10,24 +12,18 @@ import tkinter as tk
 import tkinter.messagebox as messagebox
 import tkinter.ttk as ttk
 import winreg
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 from urllib.parse import urlparse
 
 # Módulos de terceros
 import requests
 from colorama import Fore, init
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.support.ui import WebDriverWait
+from requests.adapters import HTTPAdapter
+from scrapy import Request, Spider
+from scrapy.crawler import CrawlerProcess
 from tqdm import tqdm
-from webdriver_manager.chrome import ChromeDriverManager
-
-# Constantes para URLs de herramientas
-ODT_DOWNLOAD_ID_OFFICE_2013 = "36778"  # 2013
-ODT_DOWNLOAD_ID_OFFICE_2016_AND_LATER = "49117"  # 2016, 2019, 2021LTSC, 2024LTSC y 365.
-
+from urllib3.util.retry import Retry
 
 # Directorios temporales y rutas de trabajo
 temp_dir = Path(tempfile.mkdtemp(prefix="ManagerOfficeScriptTool_"))
@@ -385,12 +381,18 @@ class OfficeManager:
                 )
                 update_url = self.registry.get_registry_value(version_key, "CDNBaseUrl")
 
-                product = self.registry.get_registry_value(
+                product_ids_raw = self.registry.get_registry_value(
                     version_key, "ProductReleaseIds"
                 )
-                media_type = self.registry.get_registry_value(
-                    version_key, f"{product}.MediaType"
-                )
+                product_id_map = {}
+
+                if product_ids_raw:
+                    product_list = [p.strip() for p in product_ids_raw.split(",")]
+                    for pid in product_list:
+                        media = self.registry.get_registry_value(
+                            version_key, f"{pid}.MediaType"
+                        )
+                        product_id_map[pid] = media if media else ""
 
                 # Buscar entradas de desinstalación para asociarlas a la instalación Office.
                 for uninstall_key in uninstall_keys:
@@ -407,6 +409,8 @@ class OfficeManager:
                         if not self.show_all and not (
                             "Microsoft Office" in display_name
                             or "Microsoft 365" in display_name
+                            or "Microsoft Project" in display_name
+                            or "Microsoft Visio" in display_name
                         ):
                             continue
 
@@ -421,6 +425,15 @@ class OfficeManager:
                             uninstall_key_path, "UninstallString"
                         )
                         click_to_run = "ClickToRun" in uninstall_string
+
+                        # Extraer ProductID desde uninstall_string
+                        match_product = re.search(
+                            r"productstoremove=([A-Za-z]+)", uninstall_string
+                        )
+                        product_id = match_product.group(1) if match_product else ""
+
+                        # Obtener MediaType asociado a ese ProductID
+                        media_type = product_id_map.get(product_id, "")
 
                         # Crear la instancia OfficeInstallation
                         installations.append(
@@ -486,170 +499,198 @@ class OfficeManager:
 
 
 class ODTManager:
+    ODT_DOWNLOAD_ID_OFFICE_2013 = "36778"
+    ODT_DOWNLOAD_ID_OFFICE_2016_AND_LATER = "49117"
+
     def __init__(self, office_install_dir: str) -> None:
         if not office_install_dir:
-            raise ValueError("El directorio de instalación no puede ser None.")
+            raise ValueError("El directorio de instalación no puede estar vacío")
         self.office_dir = office_install_dir
+        self.expected_name: Optional[str] = None
+        self.expected_size: Optional[int] = None
 
-    def get_download_url_from_microsoft(self, version_identifier: str) -> str | None:
+    def _run_scrapy_spider(self, download_id: str) -> Optional[tuple]:
+        result = {}
+
+        class ODTDownloadSpider(Spider):
+            name = "odt_spider"
+            allowed_domains = ["microsoft.com"]
+
+            def __init__(self, download_id, result_container, *args, **kwargs):
+                super().__init__(*args, **kwargs)
+                self.start_urls = [
+                    f"https://www.microsoft.com/en-us/download/details.aspx?id={download_id}"
+                ]
+                self.result_container = result_container
+
+            def parse(self, response):
+                for link in response.css("a::attr(href)").getall():
+                    if link.endswith(".exe") and "download.microsoft.com" in link:
+                        yield Request(link, callback=self.parse_head)
+
+            def parse_head(self, response):
+                size = int(response.headers.get("Content-Length", 0))
+                cd = response.headers.get("Content-Disposition", b"").decode()
+                match = re.search(r'filename="?([^";]+)', cd)
+                name = (
+                    match.group(1) if match else Path(urlparse(response.url).path).name
+                )
+
+                self.result_container["url"] = response.url
+                self.result_container["name"] = name
+                self.result_container["size"] = size
+
+        process = CrawlerProcess({"LOG_LEVEL": "ERROR"})
+        process.crawl(
+            ODTDownloadSpider, download_id=download_id, result_container=result
+        )
+        process.start()
+
+        if "url" in result and "name" in result and "size" in result:
+            return result["url"], result["name"], result["size"]
+        else:
+            logging.error("Scrapy no pudo extraer los datos de descarga")
+            return None
+
+    def get_download_url(self, version_identifier: str) -> Optional[str]:
         version_id = (
-            ODT_DOWNLOAD_ID_OFFICE_2013
+            self.ODT_DOWNLOAD_ID_OFFICE_2013
             if "2013" in version_identifier
-            else ODT_DOWNLOAD_ID_OFFICE_2016_AND_LATER
+            else self.ODT_DOWNLOAD_ID_OFFICE_2016_AND_LATER
         )
-        url_page = (
-            f"https://www.microsoft.com/en-us/download/details.aspx?id={version_id}"
-        )
-
-        options = webdriver.ChromeOptions()
-        options.add_argument("--headless")
-        options.add_argument("--disable-gpu")
-        options.add_argument("--no-sandbox")
 
         try:
-            driver = webdriver.Chrome(
-                service=Service(ChromeDriverManager().install()), options=options
-            )
-            driver.get(url_page)
+            download_info = self._run_scrapy_spider(version_id)
+            if download_info:
+                self.expected_name = download_info[1]
+                self.expected_size = download_info[2]
+                return download_info[0]
+        except Exception:
+            logging.exception("Error inesperado al obtener la URL de descarga.")
+        return None
 
-            # Esperar a que window.__DLCDetails__ esté disponible
-            WebDriverWait(driver, 15).until(
-                lambda d: d.execute_script(
-                    "return typeof window.__DLCDetails__ !== 'undefined'"
-                )
-            )
-
-            # Obtener el objeto directamente desde JS
-            dlc_details = driver.execute_script("return window.__DLCDetails__")
-
-            file_info = dlc_details["dlcDetailsView"]["downloadFile"][0]
-            url = file_info["url"]
-            self.expected_name = file_info["name"]
-            self.expected_size = int(file_info["size"])
-
-            parsed = urlparse(url)
-            if parsed.scheme != "https" or parsed.netloc != "download.microsoft.com":
-                logging.error(
-                    f"Dominio o esquema no válido: {parsed.scheme}://{parsed.netloc}"
-                )
-                return None
-
-            logging.info(f"URL válida obtenida: {url}")
-            return url
-
-        except Exception as e:
-            logging.exception(
-                "Error al obtener la URL de descarga desde window.__DLCDetails__:"
-            )
-            return None
-        finally:
-            try:
-                driver.quit()
-            except Exception:
-                pass
+    def _is_valid_download(self, path: Path) -> bool:
+        return (
+            path.exists()
+            and self.expected_name == path.name
+            and path.stat().st_size == self.expected_size
+        )
 
     def download_and_extract(
-        self, version_identifier: str, max_retries: int = 3
+        self, version_identifier: str, max_retries: int = 5
     ) -> bool:
         if not self.office_dir:
-            logging.error("El directorio de instalación no está definido.")
+            logging.error("Directorio de instalación no definido")
             return False
 
-        url = self.get_download_url_from_microsoft(version_identifier)
+        url = self.get_download_url(version_identifier)
         if not url:
             logging.error("No se pudo obtener la URL de descarga.")
             return False
 
         office_dir = Path(self.office_dir)
         office_dir.mkdir(parents=True, exist_ok=True)
-
         exe_file_name = Path(urlparse(url).path).name
-        exe_file_path = office_dir / exe_file_name
-        sanitized_path = safe_log_path(exe_file_path)
+        exe_path = office_dir / exe_file_name
+        sanitized_path = Path(safe_log_path(exe_path))
         sanitized_dir = safe_log_path(self.office_dir)
 
-        for intento in range(1, max_retries + 1):
-            try:
-                # Si ya existe y es válido, usarlo
-                if exe_file_path.exists():
-                    actual_size = exe_file_path.stat().st_size
-                    if (
-                        exe_file_path.name == self.expected_name
-                        and actual_size == self.expected_size
-                    ):
-                        logging.info(
-                            f"Archivo ya descargado y válido: {sanitized_path}"
-                        )
-                        break  # Salir del bucle, está todo bien
-                    else:
-                        logging.warning(
-                            f"Archivo existente inválido. Eliminando: {sanitized_path}"
-                        )
-                        exe_file_path.unlink()
+        # Crear sesión con reintentos automáticos
+        session = requests.Session()
+        retries = Retry(
+            total=max_retries,
+            backoff_factor=1,
+            status_forcelist=[429, 500, 502, 503, 504],
+            respect_retry_after_header=True,
+        )
+        session.mount("https://", HTTPAdapter(max_retries=retries))
 
-                logging.info(f"Intento {intento}: Descargando ODT desde: {url}")
-                response = requests.get(url, stream=True, timeout=30)
-                response.raise_for_status()
+        # Usar archivo temporal para descarga atómica
+        with tempfile.NamedTemporaryFile(dir=office_dir, delete=False) as tmp:
+            tmp_path = Path(tmp.name)
 
-                total_size = int(response.headers.get("Content-Length", 0))
-                with open(exe_file_path, "wb") as file, tqdm(
-                    total=total_size,
-                    unit="B",
-                    unit_scale=True,
-                    desc=f"Intento {intento} - Descargando ODT",
-                ) as bar:
-                    for chunk in response.iter_content(chunk_size=8192):
-                        if chunk:
-                            file.write(chunk)
-                            bar.update(len(chunk))
-
-                # Validar archivo descargado
-                actual_size = exe_file_path.stat().st_size
-                if (
-                    exe_file_path.name == self.expected_name
-                    and actual_size == self.expected_size
-                ):
-                    logging.info(f"Archivo descargado correctamente: {sanitized_path}")
-                    break  # Salir del bucle si todo está bien
-                else:
-                    logging.error("Archivo descargado no válido. Reintentando...")
-                    exe_file_path.unlink()
-
-            except (requests.RequestException, OSError) as e:
-                logging.warning(f"Error durante la descarga (intento {intento}): {e}")
-                if intento < max_retries:
-                    time.sleep(5)  # Esperar antes del siguiente intento
-                else:
-                    logging.error(
-                        "Se alcanzó el número máximo de reintentos de descarga."
-                    )
-                    return False
-
-        # Extraer ODT
         try:
-            command = [str(exe_file_path), "/quiet", f"/extract:{self.office_dir}"]
-            subprocess.run(
-                command,
-                cwd=str(self.office_dir),
-                capture_output=True,
-                text=True,
-                check=True,
-            )
-            logging.info(f"ODT extraído correctamente en {sanitized_dir}")
-            return True
+            for attempt in range(1, max_retries + 1):
+                if self._is_valid_download(exe_path):
+                    logging.info(f"Binario ya descargado y válido: {sanitized_path}")
+                    break
 
-        except subprocess.CalledProcessError as e:
-            logging.error(f"Error al ejecutar el ODT:\n{e.stderr}")
-        except requests.RequestException as e:
-            logging.error(f"Error en la descarga de ODT: {e}")
-        except PermissionError:
-            logging.error("Permiso denegado al intentar escribir en el disco.")
-        except OSError as e:
-            logging.error(f"Error del sistema de archivos: {e}")
-        except Exception:
-            logging.exception(
-                "Error inesperado durante la descarga y extracción de ODT."
-            )
+                # Preparar headers para reanudación
+                headers = {}
+                downloaded = tmp_path.stat().st_size
+                if downloaded:
+                    head = session.head(url)
+                    if head.headers.get("Accept-Ranges") == "bytes":
+                        headers["Range"] = f"bytes={downloaded}-"
+
+                logging.info(f"[{attempt}] Descargando {url}")
+                try:
+                    response = session.get(
+                        url, stream=True, timeout=(3, 30), headers=headers
+                    )
+                    response.raise_for_status()
+                    total_size = (
+                        int(response.headers.get("Content-Length", 0)) + downloaded
+                    )
+
+                    with open(tmp_path, "ab") as f, tqdm(
+                        total=total_size,
+                        initial=downloaded,
+                        unit="B",
+                        unit_scale=True,
+                        desc=f"Intento {attempt} - Descargando {exe_file_name}",
+                    ) as bar:
+                        for chunk in response.iter_content(8192):
+                            if chunk:
+                                f.write(chunk)
+                                f.flush()
+                                os.fsync(f.fileno())
+                                bar.update(len(chunk))
+
+                    # Renombrar archivo temporal a archivo final
+                    tmp_path.replace(exe_path)
+
+                    if self._is_valid_download(exe_path):
+                        break
+                except requests.RequestException as e:
+                    logging.warning(f"Error en descarga (intento {attempt}): {e}")
+                    if attempt < max_retries:
+                        delay = min(2**attempt + random.uniform(0, 1), 10)
+                        logging.info(
+                            f"Esperando {delay:.2f} segundos antes del próximo intento..."
+                        )
+                        time.sleep(delay)
+                        continue
+                    else:
+                        logging.error("No se completó la descarga tras varios intentos")
+                        return False
+
+            if self._is_valid_download(exe_path):
+                try:
+                    command = [str(exe_path), "/quiet", f"/extract:{self.office_dir}"]
+                    subprocess.run(
+                        command,
+                        cwd=str(self.office_dir),
+                        capture_output=True,
+                        text=True,
+                        check=True,
+                    )
+                    logging.info(f"ODT extraído correctamente en {sanitized_dir}")
+                    return True
+                except subprocess.CalledProcessError as e:
+                    logging.error(f"Error al ejecutar el ODT:\n{e.stderr}")
+                except PermissionError:
+                    logging.error("Permiso denegado al intentar escribir en el disco.")
+                except OSError as e:
+                    logging.error(f"Error del sistema de archivos: {e}")
+                except Exception:
+                    logging.exception("Error inesperado durante la extracción del ODT.")
+        finally:
+            # Asegurarse de limpiar el archivo temporal si existe
+            try:
+                tmp_path.unlink()
+            except OSError:
+                logging.warning(f"No se pudo eliminar el archivo temporal: {tmp_path}")
 
         return False
 
@@ -686,12 +727,14 @@ class OfficeUninstaller:
         Returns:
             str: Ruta del archivo de configuración generado.
         """
-        xml_content = f"""<Configuration>
- <Remove>
+        xml_content = f"""\
+<Configuration>
+  <Remove>
     <Product ID="{self.installation.product}">
       <Language ID="{self.installation.client_culture}" />
     </Product>
- </Remove>
+  </Remove>
+  <Display Level="None" AcceptEULA="TRUE" />
 </Configuration>"""
 
         uninstall_dir = Path(self.office_uninstall_dir)
@@ -1129,10 +1172,108 @@ class OfficeSelectionWindow:
             ),
         }
 
+        self.languages: dict[str, str] = {
+            "Afrikáans (Sudáfrica)": "af-ZA",
+            "Albanés": "sq-AL",
+            "Árabe (Arabia Saudita)": "ar-SA",
+            "Armenio": "hy-AM",
+            "Asamés (India)": "as-IN",
+            "Azerbaiyano (latino)": "az-Latn-AZ",
+            "Bangla (Bangladesh)": "bn-BD",
+            "Bangla (India)": "bn-IN",
+            "Vasco (Euskera)": "eu-ES",
+            "Bosnio (latino)": "bs-latn-BA",
+            "Búlgaro": "bg-BG",
+            "Catalán": "ca-ES",
+            "Catalán (Valencia)": "ca-ES-valencia",
+            "Chino (simplificado)": "zh-CN",
+            "Chino (tradicional)": "zh-TW",
+            "Croata": "hr-HR",
+            "Checo": "cs-CZ",
+            "Danés": "da-DK",
+            "Neerlandés": "nl-NL",
+            "Inglés (EE.UU.)": "en-US",
+            "Inglés (Reino Unido)": "en-GB",
+            "Estonio": "et-EE",
+            "Finés": "fi-FI",
+            "Francés (Francia)": "fr-FR",
+            "Francés (Canadá)": "fr-CA",
+            "Gallego": "gl-ES",
+            "Georgiano": "ka-GE",
+            "Alemán": "de-DE",
+            "Griego": "el-GR",
+            "Gujarati": "gu-IN",
+            "Hausa": "ha-Latn-NG",
+            "Hebreo": "he-IL",
+            "Hindi": "hi-IN",
+            "Húngaro": "hu-HU",
+            "Islandés": "is-IS",
+            "Igbo": "ig-NG",
+            "Indonesio": "id-ID",
+            "Irlandés": "ga-IE",
+            "isiXhosa": "xh-ZA",
+            "isiZulu": "zu-ZA",
+            "Italiano": "it-IT",
+            "Japonés": "ja-JP",
+            "Canarés": "kn-IN",
+            "Kazajo": "kk-KZ",
+            "Kinyarwanda": "rw-RW",
+            "Kiswahili": "sw-KE",
+            "Konkani": "kok-IN",
+            "Coreano": "ko-KR",
+            "Kirguís": "ky-KG",
+            "Letón": "lv-LV",
+            "Lituano": "lt-LT",
+            "Luxemburgués": "lb-LU",
+            "Macedonio": "mk-MK",
+            "Malayo": "ms-MY",
+            "Malayalam": "ml-IN",
+            "Maltés": "mt-MT",
+            "Maorí": "mi-NZ",
+            "Maratí": "mr-IN",
+            "Nepalí": "ne-NP",
+            "Noruego Bokmål": "nb-NO",
+            "Noruego Nynorsk": "nn-NO",
+            "Odia": "or-IN",
+            "Pastún": "ps-AF",
+            "Persa": "fa-IR",
+            "Polaco": "pl-PL",
+            "Portugués (Portugal)": "pt-PT",
+            "Portugués (Brasil)": "pt-BR",
+            "Punyabí (Gurmukhi)": "pa-IN",
+            "Rumano": "ro-RO",
+            "Romanche": "rm-CH",
+            "Ruso": "ru-RU",
+            "Gaélico escocés": "gd-GB",
+            "Serbio (cirílico)": "sr-cyrl-RS",
+            "Serbio (latino)": "sr-latn-RS",
+            "Serbio (cirílico, Bosnia y Herzegovina)": "sr-cyrl-BA",
+            "Sesotho sa Leboa": "nso-ZA",
+            "Setsuana": "tn-ZA",
+            "Cingalés": "si-LK",
+            "Eslovaco": "sk-SK",
+            "Esloveno": "sl-SI",
+            "Español (España)": "es-ES",
+            "Español (México)": "es-MX",
+            "Sueco": "sv-SE",
+            "Tamil": "ta-IN",
+            "Tártaro (cirílico)": "tt-RU",
+            "Telugu": "te-IN",
+            "Tailandés": "th-TH",
+            "Turco": "tr-TR",
+            "Ucraniano": "uk-UA",
+            "Urdú": "ur-PK",
+            "Uzbeko (latino)": "uz-Latn-UZ",
+            "Vietnamita": "vi-VN",
+            "Galés": "cy-GB",
+            "Wólof": "wo-SN",
+            "Yoruba": "yo-NG",
+        }
+
         self.root = tk.Tk()
         self.app_vars: dict[str, tk.BooleanVar] = {}
         self.app_checkbuttons: list[ttk.Checkbutton] = []
-        self.cancelled = False
+        self.cancelled: bool = False
 
     def on_closing(self) -> None:
         """
@@ -1168,81 +1309,115 @@ class OfficeSelectionWindow:
         self,
         selected_version: str,
         bits: str,
-        language: str,
+        selected_language_name: str,
         remove_msi: bool,
         selected_apps: list[str],
     ) -> str | None:
         """
         Genera el archivo configuration.xml con las opciones seleccionadas por el usuario.
-
-        Returns:
-            str | None: Ruta del archivo de configuración generado o None en caso de error.
         """
-
         self.root.destroy()
 
         odt_manager = ODTManager(office_install_dir)
-
         if not odt_manager.download_and_extract(selected_version):
             messagebox.showerror("Error", "No se pudo descargar y extraer ODT.")
             return None
 
         if selected_version not in self.versiones:
-            logging.error(f"Versión seleccionada no válida: {selected_version}")
             messagebox.showerror("Error", "Versión seleccionada no válida.")
             return None
 
-        available_apps = self.all_apps.get(selected_version, [])
-        apps_to_exclude = [app for app in available_apps if app not in selected_apps]
-        exclude_apps = (
-            "\n".join(
-                f'            <ExcludeApp ID="{app}" />' for app in apps_to_exclude
-            )
-            if apps_to_exclude
-            else ""
-        )
-        remove_msi_tag = "\n    <RemoveMSI />" if remove_msi else ""
+        language_id = self.languages.get(selected_language_name)
+        if not language_id:
+            messagebox.showerror("Error", "Idioma seleccionado no válido.")
+            return None
 
-        config = f"""<Configuration>
-    <Add OfficeClientEdition="{bits}" Channel="{self.versiones[selected_version][1]}">
-        <Product ID="{self.versiones[selected_version][0]}">
-            <Language ID="{language}" />{("\n" + exclude_apps) if exclude_apps else ""}
-        </Product>
-    </Add>
-    <Property Name="FORCEAPPSHUTDOWN" Value="TRUE" />
-    <Property Name="AUTOACTIVATE" Value="1" />
-    <Updates Enabled="TRUE" />{remove_msi_tag}
-    <Display Level="Full" AcceptEULA="TRUE" />
+        office_product_id = self.versiones[selected_version][0]
+
+        # Determinar IDs de Visio y Project en función del producto principal
+        if "O365" in office_product_id:
+            visio_id = "VisioProRetail"
+            project_id = "ProjectProRetail"
+        elif office_product_id.startswith("Standard"):
+            suffix = office_product_id.removeprefix("Standard")
+            visio_id = f"VisioStd{suffix}"
+            project_id = f"ProjectStd{suffix}"
+        elif office_product_id.startswith("ProPlus"):
+            suffix = office_product_id.removeprefix("ProPlus")
+            visio_id = f"VisioPro{suffix}"
+            project_id = f"ProjectPro{suffix}"
+        else:
+            visio_id = "VisioProRetail"
+            project_id = "ProjectProRetail"
+
+        PRODUCT_IDS = {
+            "Office": office_product_id,
+            "Visio": visio_id,
+            "Project": project_id,
+        }
+
+        # Aplicaciones excluidas (solo para Office)
+        available_apps = self.all_apps.get(selected_version, [])
+        excluded_apps = [app for app in available_apps if app not in selected_apps]
+        exclude_apps_block = "\n".join(
+            f'      <ExcludeApp ID="{app}" />' for app in excluded_apps
+        )
+
+        # Lista de productos a instalar
+        products = ["Office"]
+        if "Visio" in selected_apps:
+            products.append("Visio")
+        if "Project" in selected_apps:
+            products.append("Project")
+
+        # Generar todos los bloques <Product>
+        product_blocks = []
+        for product in products:
+            product_id = PRODUCT_IDS[product]
+            if product == "Office" and exclude_apps_block:
+                product_block = (
+                    f'    <Product ID="{product_id}">\n'
+                    f'      <Language ID="{language_id}" />\n'
+                    f"{exclude_apps_block}\n"
+                    f"    </Product>"
+                )
+            else:
+                product_block = (
+                    f'    <Product ID="{product_id}">\n'
+                    f'      <Language ID="{language_id}" />\n'
+                    f"    </Product>"
+                )
+
+            product_blocks.append(product_block)
+
+        # Etiqueta RemoveMSI si aplica
+        remove_msi_tag = "\n  <RemoveMSI />" if remove_msi else ""
+
+        # Ensamblar XML completo
+        config = f"""\
+<Configuration>
+  <Add OfficeClientEdition="{bits}" Channel="{self.versiones[selected_version][1]}">
+{"\n".join(product_blocks)}
+  </Add>
+  <Property Name="FORCEAPPSHUTDOWN" Value="TRUE" />
+  <Property Name="AUTOACTIVATE" Value="1" />
+  <Updates Enabled="TRUE" />{remove_msi_tag}
+  <Display Level="Full" AcceptEULA="TRUE" />
 </Configuration>"""
 
+        # Guardar en archivo
         config_file_path = Path(office_install_dir) / "configuration.xml"
-        sanitized_config_path = safe_log_path(config_file_path)
-
         try:
             config_file_path.write_text(config, encoding="utf-8")
             print(
                 Fore.GREEN
-                + f"Archivo de configuración generado exitosamente en: {sanitized_config_path}"
+                + f"Archivo de configuración generado exitosamente en: {safe_log_path(config_file_path)}"
             )
             return str(config_file_path)
-
-        except PermissionError:
-            logging.error(
-                f"Permiso denegado al escribir archivo: {sanitized_config_path}"
-            )
-            messagebox.showerror("Error", "Permiso denegado al guardar el archivo.")
-        except OSError as e:
-            logging.error(
-                f"Error del sistema de archivos al guardar {sanitized_config_path}: {e}"
-            )
-            messagebox.showerror("Error", f"No se pudo guardar el archivo:\n{e}")
         except Exception as e:
-            logging.exception(
-                "Error inesperado al escribir el archivo de configuración:"
-            )
-            messagebox.showerror("Error", f"Ocurrió un error inesperado:\n{e}")
-
-        return None
+            logging.exception("Error al escribir configuration.xml")
+            messagebox.showerror("Error", f"No se pudo guardar el archivo:\n{e}")
+            return None
 
     def install_office(self) -> None:
         """
@@ -1250,9 +1425,16 @@ class OfficeSelectionWindow:
         """
         selected_version = self.combo_version.get()
         bits = self.combo_arch.get()
-        language = self.combo_language.get()
+        selected_language_name = self.combo_language.get()
         remove_msi = self.remove_msi_var.get()
         selected_apps = [app for app, var in self.app_vars.items() if var.get()]
+
+        # Verificar si Visio o Project fueron seleccionados
+        if self.visio_var.get():
+            selected_apps.append("Visio")
+
+        if self.project_var.get():
+            selected_apps.append("Project")
 
         if not selected_apps:
             messagebox.showwarning(
@@ -1260,7 +1442,7 @@ class OfficeSelectionWindow:
                 "Por favor selecciona al menos una aplicación a instalar.",
             )
             return
-        if not selected_version or not bits or not language:
+        if not selected_version or not bits or not selected_language_name:
             messagebox.showwarning(
                 "Advertencia",
                 "Por favor selecciona una versión, arquitectura y lenguaje.",
@@ -1273,7 +1455,7 @@ class OfficeSelectionWindow:
             return
 
         self.generate_configuration(
-            selected_version, bits, language, remove_msi, selected_apps
+            selected_version, bits, selected_language_name, remove_msi, selected_apps
         )
 
     def show(self) -> None:
@@ -1281,7 +1463,6 @@ class OfficeSelectionWindow:
         Muestra la ventana de selección de Office con todos los componentes gráficos.
         """
         self.root.title("Selector de Versiones de Microsoft Office")
-        self.root.geometry("380x600")
         self.root.config(bg="#f4f4f4")
         self.root.attributes("-topmost", True)
         self.root.protocol("WM_DELETE_WINDOW", lambda: self.on_closing())
@@ -1299,31 +1480,53 @@ class OfficeSelectionWindow:
         self.combo_version.grid(row=1, column=0, sticky=tk.W, pady=5)
         self.combo_version.bind("<<ComboboxSelected>>", self.update_apps)
 
+        frame_addons = ttk.Frame(frame)
+        frame_addons.grid(row=2, column=0, sticky="w", pady=2)
+
+        self.visio_var = tk.BooleanVar(value=False)
+        self.project_var = tk.BooleanVar(value=False)
+
+        self.visio_check = ttk.Checkbutton(
+            frame_addons, text="Instalar Visio", variable=self.visio_var
+        )
+        self.visio_check.pack(side="left", padx=5)
+
+        self.project_check = ttk.Checkbutton(
+            frame_addons, text="Instalar Project", variable=self.project_var
+        )
+        self.project_check.pack(side="left", padx=5)
+
         ttk.Label(frame, text="Selecciona la arquitectura:").grid(
-            row=2, column=0, sticky=tk.W, pady=5
+            row=3, column=0, sticky=tk.W, pady=5
         )
         self.combo_arch = ttk.Combobox(
             frame, width=10, state="readonly", values=["32", "64"]
         )
         self.combo_arch.set("64")
-        self.combo_arch.grid(row=3, column=0, sticky=tk.W, pady=5)
+        self.combo_arch.grid(row=4, column=0, sticky=tk.W, pady=5)
 
         ttk.Label(frame, text="Selecciona el idioma:").grid(
-            row=4, column=0, sticky=tk.W, pady=5
+            row=5, column=0, sticky=tk.W, pady=5
         )
         self.combo_language = ttk.Combobox(
-            frame, width=20, state="readonly", values=["es-es", "en-us"]
+            frame, width=35, state="readonly", values=list(self.languages.keys())
         )
-        self.combo_language.set("es-es")
-        self.combo_language.grid(row=5, column=0, sticky=tk.W, pady=5)
+        self.combo_language.set("Español (España)")
+        self.combo_language.grid(row=6, column=0, sticky=tk.W, pady=5)
 
         self.remove_msi_var = tk.BooleanVar()
         ttk.Checkbutton(
-            frame, text="Agregar RemoveMSI", variable=self.remove_msi_var
-        ).grid(row=6, column=0, sticky=tk.W, pady=5)
+            frame,
+            text="Eliminar versiones antiguas (RemoveMSI)",
+            variable=self.remove_msi_var,
+        ).grid(row=7, column=0, sticky=tk.W, pady=5)
+
+        ttk.Label(frame, text="Selecciona apps a instalar:").grid(
+            row=8, column=0, sticky=tk.W, pady=5
+        )
 
         self.frame_apps = ttk.Frame(frame)
-        self.frame_apps.grid(row=7, column=0, sticky=(tk.W, tk.E), pady=5)
+        self.frame_apps.grid(row=9, column=0, sticky=(tk.W, tk.E), pady=5)
 
         self.app_vars = {}
         self.app_checkbuttons = []
@@ -1332,6 +1535,10 @@ class OfficeSelectionWindow:
         ttk.Button(frame, text="Instalar Office", command=self.install_office).grid(
             row=17, column=0, pady=10
         )
+
+        self.root.update_idletasks()
+        self.root.minsize(self.root.winfo_reqwidth(), self.root.winfo_reqheight())
+        self.root.resizable(False, False)
 
         self.root.mainloop()
         return self.cancelled
@@ -1347,15 +1554,13 @@ def run_uninstallers(
         installations (List[OfficeInstallation]): Lista de instalaciones a desinstalar.
         uninstall_dir (Path): Directorio temporal para ODT.
     """
-    with ThreadPoolExecutor(max_workers=1) as executor:
-        futures = [
-            executor.submit(OfficeUninstaller(uninstall_dir, inst).execute)
-            for inst in installations
-        ]
-        for future in as_completed(futures):
-            result = future.result()
+    for inst in installations:
+        try:
+            result = OfficeUninstaller(uninstall_dir, inst).execute()
             if result:
-                print(result)
+                logging.info(result)
+        except Exception as e:
+            logging.error(f"Error al desinstalar {inst}: {e}")
 
 
 def main() -> None:
