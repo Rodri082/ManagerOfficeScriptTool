@@ -65,7 +65,7 @@ Desde la versión **4.2**, el ejecutable se compila con **Nuitka**, permitiendo 
 
 > Consulta [`CHANGELOG.md`](./CHANGELOG.md) para ver las versiones exactas de herramientas y mejoras aplicadas.
 
-El proyecto ahora se compila con **Nuitka** para mejor rendimiento y estabilidad:
+El proyecto ahora se compila con [Nuitka](https://nuitka.net/) para mejor rendimiento y estabilidad:
 
 ```bash
 python -m nuitka ManagerOfficeScriptTool.py ^
