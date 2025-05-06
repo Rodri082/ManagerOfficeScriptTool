@@ -7,9 +7,9 @@ Este proyecto facilita la instalación y desinstalación de Microsoft Office en 
 ## ¿Qué es ManagerOfficeScriptTool?
 
 `ManagerOfficeScriptTool` es una herramienta automatizada para detectar, desinstalar e instalar Microsoft Office, todo desde una sola aplicación. A partir de la versión **4.0**, el proyecto fue **refactorizado completamente** en Python utilizando clases, logging profesional, sanitización de rutas sensibles y estructura modular.  
-Se distribuye como un ejecutable `.exe` creado con **PyInstaller**, eliminando el uso de `cx_Freeze`.
+Desde la versión **4.2**, el ejecutable se compila con **Nuitka**, permitiendo mayor rendimiento y menor tasa de falsos positivos en antivirus.
 
-> El código fuente es completamente abierto. Puedes revisarlo, modificarlo y compilar tu propia versión con el archivo `.spec` incluido.
+> El código fuente es completamente abierto. Puedes revisarlo, modificarlo y compilar tu propia versión.
 
 ---
 
@@ -20,10 +20,10 @@ Se distribuye como un ejecutable `.exe` creado con **PyInstaller**, eliminando e
 - ✅ **Detección detallada** de versiones instaladas de Office.
 - ✅ **Interfaz gráfica (Tkinter)** mejorada para seleccionar versión, apps, arquitectura e idioma.
 - ✅ **Instalación automatizada** mediante configuración XML y `setup.exe`.
-- ✅ **Soporte para Office 2013, 2016, 2019, LTSC-2021, LTSC-2024 y Microsoft 365**.
-- ✅ **Permisos de administrador solicitados automáticamente** (`--uac-admin`).
-- ✅ **Logging completo** en `logs/application.log`, con rutas sanitizadas para privacidad.
-- ✅ **Descarga directa del ODT desde Microsoft** usando Selenium y WebDriver.
+- ✅ **Descarga directa del ODT desde Microsoft** usando **Scrapy** (sin Selenium).
+- ✅ **Descarga robusta con reanudación**, archivo temporal y verificación por tamaño/nombre.
+- ✅ **Permisos de administrador solicitados automáticamente** (`--windows-uac-admin`).
+- ✅ **Logging completo** en `logs/application.log`, con rutas y claves del registro anonimizadas.
 
 ---
 
@@ -63,23 +63,26 @@ Se distribuye como un ejecutable `.exe` creado con **PyInstaller**, eliminando e
 
 ## Compilación desde el código fuente
 
-> Consulta [`RELEASE.md`](./RELEASE.md) para ver las dependencias exactas utilizadas.
+> Consulta [`CHANGELOG.md`](./CHANGELOG.md) para ver las versiones exactas de herramientas y mejoras aplicadas.
 
-El proyecto se empaqueta con:
-
-- **PyInstaller 6.12.0**
-- **Python 3.13.3**
-
-Puedes compilarlo con el archivo `.spec`:
+El proyecto ahora se compila con **Nuitka** para mejor rendimiento y estabilidad:
 
 ```bash
-pyinstaller ManagerOfficeScriptTool.spec
-```
-
-O bien manualmente:
-
-```bash
-pyinstaller --onefile --uac-admin ManagerOfficeScriptTool.py
+python -m nuitka ManagerOfficeScriptTool.py ^
+  --standalone ^
+  --enable-plugin=tk-inter ^
+  --windows-icon-from-ico=icon.ico ^
+  --company-name="Rodri082" ^
+  --product-name="ManagerOfficeScriptTool" ^
+  --file-version=4.2.0.0 ^
+  --product-version=4.2.0.0 ^
+  --file-description="Herramienta ManagerOfficeScriptTool" ^
+  --copyright="Licencia MIT © 2024 Rodri082" ^
+  --windows-uac-admin ^
+  --output-dir=build ^
+  --msvc=latest ^
+  --lto=yes ^
+  --report=build/compilacion.xml
 ```
 
 ---

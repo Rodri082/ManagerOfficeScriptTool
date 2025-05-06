@@ -4,6 +4,51 @@ Historial de cambios del proyecto **ManagerOfficeScriptTool**
 
 ---
 
+## [4.2] - 2025-05-06  
+### 🔄 Migración de motor de descarga: de Playwright a Scrapy  
+- Reemplazo completo de Playwright por **Scrapy** para obtener la URL oficial de descarga del Office Deployment Tool (ODT).  
+- Extracción automatizada del nombre del archivo y tamaño desde los headers HTTP (`Content-Disposition` y `Content-Length`).  
+- Eliminadas las dependencias pesadas (`playwright`, `asyncio`, `websockets`).  
+
+### ⚙️ Nueva lógica de descarga robusta y reanudable  
+- Descarga con:
+  - Reintentos automáticos (`Retry` con `HTTPAdapter`).
+  - Soporte para **descarga reanudable** mediante `Range`.
+  - Escritura atómica con `NamedTemporaryFile`, `flush()` y `fsync()` para evitar archivos corruptos o bloqueados por antivirus.
+  - Validación final por nombre y tamaño esperado.
+- Progreso visual detallado con `tqdm`.  
+- Descarga segura y eficiente, incluso ante errores intermitentes de red.
+
+### 🧼 Refactor y mejoras internas  
+- Uso extensivo y consistente de `pathlib.Path`.
+- Sanitización avanzada de rutas locales y claves del registro (`safe_log_path`, `safe_log_registry_key`).
+- Mejoras en el logging para trazabilidad completa del flujo.
+- Nueva validación en `ODTManager` para asegurar el estado del archivo descargado antes de ejecutar el instalador.
+
+### 📦 Compilación con Nuitka  
+- Primer release con **compilación oficial mediante Nuitka** en lugar de PyInstaller:
+  - Menor falsos positivos en antivirus.
+  - Ejecutable más rápido, optimizado y difícil de descompilar.
+- Comando de compilación utilizado:
+  ```bash
+  python -m nuitka ManagerOfficeScriptTool.py ^
+    --standalone ^
+    --enable-plugin=tk-inter ^
+    --windows-icon-from-ico=icon.ico ^
+    --company-name="Rodri082" ^
+    --product-name="ManagerOfficeScriptTool" ^
+    --file-version=4.2.0.0 ^
+    --product-version=4.2.0.0 ^
+    --file-description="Herramienta ManagerOfficeScriptTool" ^
+    --copyright="Licencia MIT © 2024 Rodri082" ^
+    --windows-uac-admin ^
+    --output-dir=build ^
+    --msvc=latest ^
+    --lto=yes ^
+    --report=build/compilacion.xml
+
+---
+
 ## [4.0] - 2025-04-14
 ### Renovación Total del Script
 - Refactorización completa en **programación orientada a objetos**: separación en clases (`OfficeManager`, `ODTManager`, `OfficeUninstaller`, `OfficeInstaller`, `OfficeSelectionWindow`, `RegistryReader`).
