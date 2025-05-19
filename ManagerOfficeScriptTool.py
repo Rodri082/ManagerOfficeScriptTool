@@ -1,5 +1,7 @@
 # Módulos integrados
+import json
 import logging
+import multiprocessing
 import os
 import platform
 import random
@@ -13,7 +15,7 @@ import tkinter.messagebox as messagebox
 import tkinter.ttk as ttk
 import winreg
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Union
 from urllib.parse import urlparse
 
 # Módulos de terceros
@@ -22,6 +24,7 @@ from colorama import Fore, init
 from requests.adapters import HTTPAdapter
 from scrapy import Request, Spider
 from scrapy.crawler import CrawlerProcess
+from scrapy.utils.log import configure_logging
 from tqdm import tqdm
 from urllib3.util.retry import Retry
 
@@ -32,13 +35,14 @@ office_install_dir = temp_dir / "InstallOfficeFiles"
 office_uninstall_dir = temp_dir / "UninstallOfficeFiles"
 
 
-def safe_log_path(path: Path) -> str:
+def safe_log_path(path: Union[str, Path]) -> str:
     """
     Convierte rutas sensibles a una forma anonimizada para el log.
     Reemplaza la carpeta del usuario con %USERPROFILE%.
     """
     try:
-        return str(path).replace(str(Path.home()), "%USERPROFILE%")
+        path_obj = Path(path)
+        return str(path_obj).replace(str(Path.home()), "%USERPROFILE%")
     except Exception:
         return str(path)
 
@@ -107,27 +111,25 @@ def clean_temp_folders() -> None:
         root.destroy()
         return
 
-    eliminadas = []
-    errores = []
-
-    for folder_path in [Path(office_install_dir), Path(office_uninstall_dir)]:
+    eliminadas, errores = [], []
+    for folder_path in [office_install_dir, office_uninstall_dir]:
+        folder_path = Path(folder_path)
         sanitized_folder = safe_log_path(folder_path)
-
-        if folder_path.is_dir():
-            try:
+        try:
+            if folder_path.is_dir():
                 shutil.rmtree(folder_path)
                 eliminadas.append(sanitized_folder)
                 logging.info(f"Carpeta eliminada: {sanitized_folder}")
-            except PermissionError:
-                logging.error(
-                    f"Permiso denegado al eliminar la carpeta: {sanitized_folder}"
-                )
-                errores.append(f"Permiso denegado: {sanitized_folder}")
-            except FileNotFoundError:
-                logging.warning(f"La carpeta ya no existe: {sanitized_folder}")
-            except OSError as e:
-                logging.exception(f"Error eliminando {sanitized_folder}: {e}")
-                errores.append(f"{sanitized_folder}: {e}")
+        except PermissionError:
+            logging.error(
+                f"Permiso denegado al eliminar la carpeta: {sanitized_folder}"
+            )
+            errores.append(f"Permiso denegado: {sanitized_folder}")
+        except FileNotFoundError:
+            logging.warning(f"La carpeta ya no existe: {sanitized_folder}")
+        except OSError as e:
+            logging.exception(f"Error eliminando {sanitized_folder}: {e}")
+            errores.append(f"{sanitized_folder}: {e}")
 
     if errores:
         messagebox.showwarning(
@@ -292,7 +294,8 @@ class OfficeInstallation:
         self.click_to_run = click_to_run
         self.uninstall_string = uninstall_string
         self.updates_enabled = updates_enabled
-        self.bitness = bitness
+        self.bitness_original = bitness  # Guardar valor original
+        self.product_original = product  # Guardar valor original
         self.update_url = update_url
         self.media_type = media_type
 
@@ -310,10 +313,15 @@ class OfficeInstallation:
             self.bitness = (
                 "64-Bits" if match_platform.group(1).lower() == "x64" else "32-Bits"
             )
+        else:
+            self.bitness = bitness  # Usar el original si no se encuentra
 
-        # Extraer ProductID desde UninstallString (buscando "productstoremove=" y extrayendo el valor antes del guion bajo)
-        match_product = re.search(r"productstoremove=([A-Za-z]+)", uninstall_string)
-        self.product = match_product.group(1) if match_product else product
+        # Extraer ProductID desde UninstallString (buscando "productstoremove=")
+        match_product = re.search(r"productstoremove=([A-Za-z0-9_]+)", uninstall_string)
+        if match_product:
+            self.product = match_product.group(1)
+        else:
+            self.product = product  # Usar el original si no se encuentra
 
     def __repr__(self) -> str:
         """
@@ -428,7 +436,7 @@ class OfficeManager:
 
                         # Extraer ProductID desde uninstall_string
                         match_product = re.search(
-                            r"productstoremove=([A-Za-z]+)", uninstall_string
+                            r"productstoremove=([A-Za-z0-9_]+)", uninstall_string
                         )
                         product_id = match_product.group(1) if match_product else ""
 
@@ -498,6 +506,39 @@ class OfficeManager:
         return self._get_installations()
 
 
+def run_scrapy_spider_process(temp_file_path, download_id):
+    configure_logging({"LOG_ENABLED": False})
+
+    scrapy_logger = logging.getLogger("scrapy")
+    scrapy_logger.setLevel(logging.ERROR)
+    scrapy_logger.propagate = True
+
+    class ODTSpider(Spider):
+        name = "odt_spider"
+        start_urls = [
+            f"https://www.microsoft.com/en-us/download/details.aspx?id={download_id}"
+        ]
+        custom_settings = {"LOG_LEVEL": "ERROR"}
+
+        def parse(self, response):
+            for link in response.css("a::attr(href)").getall():
+                if link.endswith(".exe") and "download.microsoft.com" in link:
+                    yield Request(link, callback=self.parse_head)
+
+        def parse_head(self, response):
+            size = int(response.headers.get("Content-Length", 0))
+            cd = response.headers.get("Content-Disposition", b"").decode()
+            match = re.search(r'filename="?([^";]+)', cd)
+            name = match.group(1) if match else Path(urlparse(response.url).path).name
+            result = {"url": response.url, "name": name, "size": size}
+            with open(temp_file_path, "w", encoding="utf-8") as f:
+                json.dump(result, f)
+
+    process = CrawlerProcess()
+    process.crawl(ODTSpider)
+    process.start()
+
+
 class ODTManager:
     ODT_DOWNLOAD_ID_OFFICE_2013 = "36778"
     ODT_DOWNLOAD_ID_OFFICE_2016_AND_LATER = "49117"
@@ -510,46 +551,23 @@ class ODTManager:
         self.expected_size: Optional[int] = None
 
     def _run_scrapy_spider(self, download_id: str) -> Optional[tuple]:
-        result = {}
+        with tempfile.NamedTemporaryFile(
+            mode="w+", suffix=".json", delete=False
+        ) as tmp:
+            temp_path = tmp.name
 
-        class ODTDownloadSpider(Spider):
-            name = "odt_spider"
-            allowed_domains = ["microsoft.com"]
-
-            def __init__(self, download_id, result_container, *args, **kwargs):
-                super().__init__(*args, **kwargs)
-                self.start_urls = [
-                    f"https://www.microsoft.com/en-us/download/details.aspx?id={download_id}"
-                ]
-                self.result_container = result_container
-
-            def parse(self, response):
-                for link in response.css("a::attr(href)").getall():
-                    if link.endswith(".exe") and "download.microsoft.com" in link:
-                        yield Request(link, callback=self.parse_head)
-
-            def parse_head(self, response):
-                size = int(response.headers.get("Content-Length", 0))
-                cd = response.headers.get("Content-Disposition", b"").decode()
-                match = re.search(r'filename="?([^";]+)', cd)
-                name = (
-                    match.group(1) if match else Path(urlparse(response.url).path).name
-                )
-
-                self.result_container["url"] = response.url
-                self.result_container["name"] = name
-                self.result_container["size"] = size
-
-        process = CrawlerProcess({"LOG_LEVEL": "ERROR"})
-        process.crawl(
-            ODTDownloadSpider, download_id=download_id, result_container=result
+        p = multiprocessing.Process(
+            target=run_scrapy_spider_process, args=(temp_path, download_id)
         )
-        process.start()
+        p.start()
+        p.join()
 
-        if "url" in result and "name" in result and "size" in result:
-            return result["url"], result["name"], result["size"]
-        else:
-            logging.error("Scrapy no pudo extraer los datos de descarga")
+        try:
+            with open(temp_path, "r", encoding="utf-8") as f:
+                result = json.load(f)
+                return result["url"], result["name"], result["size"]
+        except Exception as e:
+            logging.error(f"Fallo al leer resultado del spider: {e}")
             return None
 
     def get_download_url(self, version_identifier: str) -> Optional[str]:
@@ -586,13 +604,17 @@ class ODTManager:
         url = self.get_download_url(version_identifier)
         if not url:
             logging.error("No se pudo obtener la URL de descarga.")
+            print(
+                Fore.RED
+                + "No se pudo obtener la URL de descarga. Verifica tu conexión a internet o intenta más tarde."
+            )
             return False
 
         office_dir = Path(self.office_dir)
         office_dir.mkdir(parents=True, exist_ok=True)
         exe_file_name = Path(urlparse(url).path).name
         exe_path = office_dir / exe_file_name
-        sanitized_path = Path(safe_log_path(exe_path))
+        sanitized_path = safe_log_path(exe_path)
         sanitized_dir = safe_log_path(self.office_dir)
 
         # Crear sesión con reintentos automáticos
@@ -617,7 +639,7 @@ class ODTManager:
 
                 # Preparar headers para reanudación
                 headers = {}
-                downloaded = tmp_path.stat().st_size
+                downloaded = tmp_path.stat().st_size if tmp_path.exists() else 0
                 if downloaded:
                     head = session.head(url)
                     if head.headers.get("Accept-Ranges") == "bytes":
@@ -649,11 +671,19 @@ class ODTManager:
 
                     # Renombrar archivo temporal a archivo final
                     tmp_path.replace(exe_path)
+                    print(
+                        Fore.GREEN
+                        + f"Archivo descargado exitosamente en: {sanitized_path}"
+                    )
 
                     if self._is_valid_download(exe_path):
                         break
                 except requests.RequestException as e:
                     logging.warning(f"Error en descarga (intento {attempt}): {e}")
+                    print(
+                        Fore.RED
+                        + "Error de red durante la descarga. Verifica tu conexión a internet y permisos de red."
+                    )
                     if attempt < max_retries:
                         delay = min(2**attempt + random.uniform(0, 1), 10)
                         logging.info(
@@ -823,9 +853,9 @@ class OfficeUninstaller:
             str: Mensaje de estado coloreado según el resultado.
         """
         if self.ejecutar_desinstalacion():
-            return f"{Fore.GREEN}Desinstalado: {self.installation.name}"
+            return f"{Fore.GREEN} Desinstalado: {self.installation.name}"
         else:
-            return f"{Fore.RED}Error al desinstalar: {self.installation.name}"
+            return f"{Fore.RED} Error al desinstalar: {self.installation.name}"
 
 
 class OfficeInstaller:
@@ -903,7 +933,10 @@ class OfficeInstaller:
 
         except PermissionError:
             logging.error("Permiso denegado al ejecutar setup.exe.")
-            print(Fore.RED + "Permiso denegado al ejecutar la instalación.")
+            print(
+                Fore.RED
+                + "Permiso denegado al ejecutar la instalación. Ejecuta el script como administrador."
+            )
 
         except OSError as e:
             logging.error(
@@ -1318,7 +1351,7 @@ class OfficeSelectionWindow:
         """
         self.root.destroy()
 
-        odt_manager = ODTManager(office_install_dir)
+        odt_manager = ODTManager(str(office_install_dir))
         if not odt_manager.download_and_extract(selected_version):
             messagebox.showerror("Error", "No se pudo descargar y extraer ODT.")
             return None
@@ -1357,10 +1390,11 @@ class OfficeSelectionWindow:
         }
 
         # Aplicaciones excluidas (solo para Office)
-        available_apps = self.all_apps.get(selected_version, [])
-        excluded_apps = [app for app in available_apps if app not in selected_apps]
+        available_apps = set(self.all_apps.get(selected_version, []))
+        selected_apps_set = set(selected_apps)
+        excluded_apps = available_apps - selected_apps_set
         exclude_apps_block = "\n".join(
-            f'      <ExcludeApp ID="{app}" />' for app in excluded_apps
+            f'      <ExcludeApp ID="{app}" />' for app in sorted(excluded_apps)
         )
 
         # Lista de productos a instalar
@@ -1416,7 +1450,11 @@ class OfficeSelectionWindow:
             return str(config_file_path)
         except Exception as e:
             logging.exception("Error al escribir configuration.xml")
-            messagebox.showerror("Error", f"No se pudo guardar el archivo:\n{e}")
+            messagebox.showerror(
+                "Error",
+                f"No se pudo guardar el archivo:\n{e}\n\n"
+                "Verifica que tienes permisos de escritura en la carpeta de destino.",
+            )
             return None
 
     def install_office(self) -> None:
@@ -1458,7 +1496,7 @@ class OfficeSelectionWindow:
             selected_version, bits, selected_language_name, remove_msi, selected_apps
         )
 
-    def show(self) -> None:
+    def show(self) -> bool:
         """
         Muestra la ventana de selección de Office con todos los componentes gráficos.
         """
@@ -1469,7 +1507,7 @@ class OfficeSelectionWindow:
 
         # Crear estructura de la interfaz
         frame = ttk.Frame(self.root, padding="20")
-        frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S), padx=10, pady=10)
+        frame.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
 
         ttk.Label(frame, text="Selecciona la versión de Office:").grid(
             row=0, column=0, sticky=tk.W, pady=5
@@ -1526,7 +1564,7 @@ class OfficeSelectionWindow:
         )
 
         self.frame_apps = ttk.Frame(frame)
-        self.frame_apps.grid(row=9, column=0, sticky=(tk.W, tk.E), pady=5)
+        self.frame_apps.grid(row=9, column=0, sticky="we", pady=5)
 
         self.app_vars = {}
         self.app_checkbuttons = []
@@ -1556,8 +1594,9 @@ def run_uninstallers(
     """
     for inst in installations:
         try:
-            result = OfficeUninstaller(uninstall_dir, inst).execute()
+            result = OfficeUninstaller(str(uninstall_dir), inst).execute()
             if result:
+                print(result)
                 logging.info(result)
         except Exception as e:
             logging.error(f"Error al desinstalar {inst}: {e}")
@@ -1574,7 +1613,7 @@ def main() -> None:
     - Gestiona errores y limpia archivos temporales al finalizar.
     """
     try:
-        init_logging(logs_folder)
+        init_logging(str(logs_folder))
         init(autoreset=True)
 
         if ask_yes_no("¿Desea detectar las versiones de Office instaladas?"):
@@ -1649,7 +1688,7 @@ def main() -> None:
             if cancelled:
                 print(Fore.YELLOW + "El usuario canceló la instalación.")
             else:
-                installer = OfficeInstaller(office_install_dir)
+                installer = OfficeInstaller(str(office_install_dir))
                 installer.run_setup_commands()
         else:
             print(Fore.YELLOW + "Proceso cancelado por el usuario.")
@@ -1661,10 +1700,15 @@ def main() -> None:
     except Exception as e:
         logging.exception("Ocurrió un error inesperado en la ejecución principal.")
         print(Fore.RED + f"Error crítico: {e}")
+        print(
+            Fore.YELLOW
+            + "Sugerencias: Verifica tu conexión a internet, permisos de administrador y espacio en disco."
+        )
 
     finally:
         clean_temp_folders()
 
 
 if __name__ == "__main__":
+    multiprocessing.freeze_support()
     main()
