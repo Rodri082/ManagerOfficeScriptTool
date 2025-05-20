@@ -220,6 +220,7 @@ class ODTManager:
         # interrumpidas y reanudables
         with tempfile.NamedTemporaryFile(dir=office_dir, delete=False) as tmp:
             tmp_path = Path(tmp.name)
+        sanitized_tmp_path = safe_log_path(tmp_path)
 
         try:
             for attempt in range(1, max_retries + 1):
@@ -339,7 +340,8 @@ class ODTManager:
                 tmp_path.unlink()
             except OSError:
                 logging.warning(
-                    f"No se pudo eliminar el archivo temporal: {tmp_path}"
+                    "No se pudo eliminar el archivo temporal: "
+                    f"{sanitized_tmp_path}"
                 )
 
         return False
