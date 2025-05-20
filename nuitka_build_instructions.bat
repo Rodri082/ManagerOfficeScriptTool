@@ -1,8 +1,13 @@
 python -m nuitka main.py ^
 --standalone ^
 --enable-plugin=tk-inter ^
+--include-data-file=config.yaml=config.yaml ^
+--include-package=core ^
+--include-package=gui ^
+--include-package=scripts ^
+--include-module=utils ^
+--include-package=scrapy ^
 --windows-icon-from-ico=icon.ico ^
---include-data-file=config.yaml=./config.yaml ^
 --company-name="Rodri082" ^
 --product-name="ManagerOfficeScriptTool" ^
 --file-version=5.0.0.0 ^
@@ -11,6 +16,7 @@ python -m nuitka main.py ^
 --copyright="Licencia MIT © 2024 Rodri082" ^
 --windows-uac-admin ^
 --output-dir=build ^
+--output-filename=ManagerOfficeScriptTool.exe ^
 --msvc=latest ^
 --lto=yes ^
 --report=build/compilacion.xml

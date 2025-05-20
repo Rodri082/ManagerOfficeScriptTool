@@ -124,7 +124,6 @@ class OfficeSelectionWindow:
         Returns:
             str | None: Ruta al archivo generado o None si hubo error.
         """
-        self.root.destroy()
 
         odt_manager = ODTManager(str(self.office_install_dir))
         if not odt_manager.download_and_extract(selected_version):
@@ -134,6 +133,8 @@ class OfficeSelectionWindow:
                 parent=self.root,
             )
             return None
+
+        self.root.destroy()
 
         if selected_version not in self.versiones:
             Messagebox.show_error(

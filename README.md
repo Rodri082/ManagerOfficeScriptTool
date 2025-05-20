@@ -124,11 +124,11 @@ Edita `config.yaml` para:
 Se recomienda usar [Nuitka](https://nuitka.net/) para compilar el proyecto a `.exe`:
 
 ```sh
-cmd /c nuitka_build_instructions.txt
+cmd /c nuitka_build_instructions.bat
 ```
 o en PowerShell:
 ```powershell
-.\nuitka_build_instructions.txt
+.\nuitka_build_instructions.bat
 ```
 
 Consulta el `CHANGELOG.md` para detalles de versiones y mejoras.
