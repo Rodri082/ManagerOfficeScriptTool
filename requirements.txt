@@ -5,3 +5,5 @@ requests
 tqdm
 scrapy
 urllib3
+types-PyYAML
+types-requests
