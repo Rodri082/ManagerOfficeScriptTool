@@ -7,6 +7,7 @@ carpetas temporales en ManagerOfficeScriptTool.
 
 import logging
 import shutil
+import sys
 import tempfile
 import tkinter as tk
 import tkinter.messagebox as messagebox
@@ -15,8 +16,19 @@ from typing import Union
 
 from colorama import Fore
 
-# Crea carpetas temporales para logs y archivos de instalación/desinstalación
-BASE_DIR = Path(__file__).parent
+
+def get_data_path(filename: str) -> Path:
+    """
+    Devuelve la ruta absoluta a un archivo de datos (como config.yaml),
+    compatible tanto en desarrollo como empaquetado con Nuitka.
+    """
+    if getattr(sys, "frozen", False):
+        # Ejecutando como binario (Nuitka, PyInstaller, etc.)
+        base_path = Path(sys.executable).parent
+    else:
+        # Ejecutando como script normal
+        base_path = Path(__file__).parent
+    return base_path / filename
 
 
 def get_temp_dir(prefix="ManagerOfficeScriptTool_") -> Path:

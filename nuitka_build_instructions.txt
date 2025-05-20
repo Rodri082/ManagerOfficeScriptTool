@@ -2,6 +2,7 @@ python -m nuitka main.py ^
 --standalone ^
 --enable-plugin=tk-inter ^
 --windows-icon-from-ico=icon.ico ^
+--include-data-file=config.yaml=./config.yaml ^
 --company-name="Rodri082" ^
 --product-name="ManagerOfficeScriptTool" ^
 --file-version=5.0.0.0 ^

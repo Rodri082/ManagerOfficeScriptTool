@@ -16,7 +16,7 @@ import yaml
 from colorama import Fore
 from core.odt_manager import ODTManager
 from ttkbootstrap.dialogs import Messagebox
-from utils import BASE_DIR, center_window, safe_log_path
+from utils import center_window, get_data_path, safe_log_path
 
 
 class OfficeSelectionWindow:
@@ -44,7 +44,7 @@ class OfficeSelectionWindow:
         """
         self.office_install_dir = office_install_dir
 
-        with open(BASE_DIR / "config.yaml", encoding="utf-8") as f:
+        with open(get_data_path("config.yaml"), encoding="utf-8") as f:
             config = yaml.safe_load(f)
 
         self.all_apps = config["office_apps"]

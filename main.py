@@ -64,18 +64,21 @@ def main() -> None:
     - Permite configurar e instalar una nueva versión de Office.
     - Gestiona errores y limpia archivos temporales al finalizar.
     """
+    # Inicializa variables para las rutas de instalación y desinstalación
+    # de Office, y la carpeta temporal para logs
     temp_dir = None
     office_install_dir = None
     office_uninstall_dir = None
     try:
-        # Inicializa logs y colorama, y ejecuta el flujo principal
+        # Crea carpetas temporales para logs y archivos de
+        # instalación/desinstalación
         temp_dir = get_temp_dir()
         logs_folder = ensure_subfolder(temp_dir, "logs")
         office_install_dir = ensure_subfolder(temp_dir, "InstallOfficeFiles")
         office_uninstall_dir = ensure_subfolder(
             temp_dir, "UninstallOfficeFiles"
         )
-
+        # Inicializa logs y colorama, y ejecuta el flujo principal
         init_logging(str(logs_folder))
         init(autoreset=True)
 
