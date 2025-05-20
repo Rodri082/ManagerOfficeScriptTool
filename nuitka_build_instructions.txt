@@ -1,11 +1,11 @@
-python -m nuitka ManagerOfficeScriptTool.py ^
+python -m nuitka main.py ^
 --standalone ^
 --enable-plugin=tk-inter ^
 --windows-icon-from-ico=icon.ico ^
 --company-name="Rodri082" ^
 --product-name="ManagerOfficeScriptTool" ^
---file-version=4.2.0.0 ^
---product-version=4.2.0.0 ^
+--file-version=5.0.0.0 ^
+--product-version=5.0.0.0 ^
 --file-description="Herramienta ManagerOfficeScriptTool" ^
 --copyright="Licencia MIT © 2024 Rodri082" ^
 --windows-uac-admin ^
