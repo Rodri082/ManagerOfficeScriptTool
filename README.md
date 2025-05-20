@@ -69,11 +69,15 @@ ManagerOfficeScriptTool/
    ```sh
    pip install -r requirements.txt
    ```
-3. Ejecuta el script principal:
+3. Opcional, recomendado para desarrollo y análisis estático. Instala las dependencias de desarrollo:
+   ```sh
+   pip install -r requirements-dev.txt
+   ```
+4. Ejecuta el script principal:
    ```sh
    python main.py
    ```
-4. Sigue las instrucciones en consola y/o GUI para detectar, desinstalar e instalar Office.
+5. Sigue las instrucciones en consola y/o GUI para detectar, desinstalar e instalar Office.
 
 ---
 
@@ -120,7 +124,11 @@ Edita `config.yaml` para:
 Se recomienda usar [Nuitka](https://nuitka.net/) para compilar el proyecto a `.exe`:
 
 ```sh
-python -m nuitka main.py --standalone --enable-plugin=tk-inter --windows-uac-admin
+cmd /c nuitka_build_instructions.txt
+```
+o en PowerShell:
+```powershell
+.\nuitka_build_instructions.txt
 ```
 
 Consulta el `CHANGELOG.md` para detalles de versiones y mejoras.

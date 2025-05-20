@@ -1,0 +1,6 @@
+# Extiende las dependencias de producción
+-r requirements.txt
+
+# Tipado opcional para desarrollo y análisis estático
+types-PyYAML
+types-requests
