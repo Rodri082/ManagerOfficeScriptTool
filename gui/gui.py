@@ -16,7 +16,7 @@ import yaml
 from colorama import Fore
 from core.odt_manager import ODTManager
 from ttkbootstrap.dialogs import Messagebox
-from utils import BASE_DIR, center_window, office_install_dir, safe_log_path
+from utils import BASE_DIR, center_window, safe_log_path
 
 
 class OfficeSelectionWindow:
@@ -29,7 +29,7 @@ class OfficeSelectionWindow:
     XML compatible con Office Deployment Tool (ODT).
     """
 
-    def __init__(self) -> None:
+    def __init__(self, office_install_dir: Path):
         """
         Inicializa la interfaz gráfica del selector de versiones de Office.
 
@@ -42,6 +42,7 @@ class OfficeSelectionWindow:
             app_checkbuttons (list): Lista de checkbuttons de apps.
             cancelled (bool): Indica si el usuario canceló la instalación.
         """
+        self.office_install_dir = office_install_dir
 
         with open(BASE_DIR / "config.yaml", encoding="utf-8") as f:
             config = yaml.safe_load(f)
@@ -125,7 +126,7 @@ class OfficeSelectionWindow:
         """
         self.root.destroy()
 
-        odt_manager = ODTManager(str(office_install_dir))
+        odt_manager = ODTManager(str(self.office_install_dir))
         if not odt_manager.download_and_extract(selected_version):
             Messagebox.show_error(
                 "No se pudo descargar y extraer ODT.",
@@ -226,7 +227,7 @@ class OfficeSelectionWindow:
   <Display Level="Full" AcceptEULA="TRUE" />
 </Configuration>"""  # noqa: E501
 
-        config_file_path = Path(office_install_dir) / "configuration.xml"
+        config_file_path = Path(self.office_install_dir) / "configuration.xml"
         try:
             config_file_path.write_text(config, encoding="utf-8")
             print(

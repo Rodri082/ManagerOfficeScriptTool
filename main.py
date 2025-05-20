@@ -48,10 +48,9 @@ from scripts.uninstaller import run_uninstallers
 from utils import (
     ask_yes_no,
     clean_temp_folders,
+    ensure_subfolder,
+    get_temp_dir,
     init_logging,
-    logs_folder,
-    office_install_dir,
-    office_uninstall_dir,
 )
 
 
@@ -65,8 +64,18 @@ def main() -> None:
     - Permite configurar e instalar una nueva versión de Office.
     - Gestiona errores y limpia archivos temporales al finalizar.
     """
+    temp_dir = None
+    office_install_dir = None
+    office_uninstall_dir = None
     try:
         # Inicializa logs y colorama, y ejecuta el flujo principal
+        temp_dir = get_temp_dir()
+        logs_folder = ensure_subfolder(temp_dir, "logs")
+        office_install_dir = ensure_subfolder(temp_dir, "InstallOfficeFiles")
+        office_uninstall_dir = ensure_subfolder(
+            temp_dir, "UninstallOfficeFiles"
+        )
+
         init_logging(str(logs_folder))
         init(autoreset=True)
 
@@ -171,7 +180,7 @@ def main() -> None:
 
         if ask_yes_no("¿Desea proceder con una nueva instalación de Office?"):
             print("Iniciando configuración de instalación de Office...")
-            selection_window = OfficeSelectionWindow()
+            selection_window = OfficeSelectionWindow(office_install_dir)
             cancelled = selection_window.show()
 
             if cancelled:
@@ -203,8 +212,14 @@ def main() -> None:
         )
 
     finally:
-        # Limpia carpetas temporales al finalizar el script
-        clean_temp_folders()
+        # Solo limpia si las carpetas existen
+        folders_to_clean = []
+        if office_install_dir is not None:
+            folders_to_clean.append(office_install_dir)
+        if office_uninstall_dir is not None:
+            folders_to_clean.append(office_uninstall_dir)
+        if folders_to_clean:
+            clean_temp_folders(folders_to_clean)
 
 
 if __name__ == "__main__":

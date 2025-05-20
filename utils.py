@@ -16,12 +16,17 @@ from typing import Union
 from colorama import Fore
 
 # Crea carpetas temporales para logs y archivos de instalación/desinstalación
-temp_dir = Path(tempfile.mkdtemp(prefix="ManagerOfficeScriptTool_"))
-logs_folder = temp_dir / "logs"
-office_install_dir = temp_dir / "InstallOfficeFiles"
-office_uninstall_dir = temp_dir / "UninstallOfficeFiles"
-
 BASE_DIR = Path(__file__).parent
+
+
+def get_temp_dir(prefix="ManagerOfficeScriptTool_") -> Path:
+    return Path(tempfile.mkdtemp(prefix=prefix))
+
+
+def ensure_subfolder(parent: Path, name: str) -> Path:
+    folder = parent / name
+    folder.mkdir(parents=True, exist_ok=True)
+    return folder
 
 
 # Sanitiza rutas para evitar exponer información sensible en los logs
@@ -97,18 +102,16 @@ def center_window(win, width=300, height=200):
     win.geometry(f"{width}x{height}+{x}+{y}")
 
 
-def clean_temp_folders() -> None:
+def clean_temp_folders(folders: list[Path]) -> None:
     """
-    Elimina las carpetas temporales generadas por el script si el usuario lo
-    confirma.
+    Elimina las carpetas temporales generadas por el script si el usuario
+    lo confirma.
     Aplica sanitización a las rutas antes de mostrar o registrar mensajes.
     """
     root = tk.Tk()
     root.withdraw()
     root.attributes("-topmost", True)
 
-    # Pregunta al usuario si desea eliminar carpetas temporales
-    # antes de proceder
     if not messagebox.askyesno(
         "Eliminar archivos temporales",
         "¿Deseas eliminar las carpetas temporales creadas por el script?",
@@ -120,7 +123,7 @@ def clean_temp_folders() -> None:
         return
 
     eliminadas, errores = [], []
-    for folder_path in [office_install_dir, office_uninstall_dir]:
+    for folder_path in folders:
         folder_path = Path(folder_path)
         sanitized_folder = safe_log_path(folder_path)
         try:
