@@ -79,7 +79,8 @@ class OfficeUninstaller:
             print(
                 Fore.GREEN
                 + (
-                    "Archivo de configuración XML de desinstalación generado en: "
+                    "Archivo de configuración XML "
+                    "de desinstalación generado en: "
                     f"{sanitized_file_path}"
                 )
             )
