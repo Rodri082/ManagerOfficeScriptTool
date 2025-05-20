@@ -76,6 +76,13 @@ class OfficeUninstaller:
 
         try:
             file_path.write_text(xml_content, encoding="utf-8")
+            print(
+                Fore.GREEN
+                + (
+                    "Archivo de configuración XML de desinstalación generado en: "
+                    f"{sanitized_file_path}"
+                )
+            )
             return str(file_path)
         except Exception as e:
             logging.exception(
