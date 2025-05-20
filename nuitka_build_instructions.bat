@@ -7,6 +7,7 @@ python -m nuitka main.py ^
 --include-package=scripts ^
 --include-module=utils ^
 --include-package=scrapy ^
+--nofollow-import-to=tests ^
 --windows-icon-from-ico=icon.ico ^
 --company-name="Rodri082" ^
 --product-name="ManagerOfficeScriptTool" ^
