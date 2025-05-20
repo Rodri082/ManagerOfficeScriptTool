@@ -16,25 +16,35 @@ A partir de la versión **5.0**, el proyecto ha sido completamente **refactoriza
 ```
 ManagerOfficeScriptTool/
 │
-├── main.py                # Punto de entrada y orquestador del flujo
-├── config.yaml            # Configuración centralizada (versiones, apps, idiomas)
-├── utils.py               # Utilidades generales (logs, rutas, diálogos)
-│
-├── core/
+├── core/                   # Lógica de negocio y acceso a registro/ODT
 │   ├── __init__.py
-│   ├── office_manager.py      # Detección y visualización de instalaciones
-│   ├── office_installation.py # Representación de una instalación detectada
-│   ├── odt_manager.py         # Descarga y extracción de ODT
-│   └── registry_utils.py      # Acceso seguro al registro de Windows
+│   ├── office_manager.py
+│   ├── office_installation.py
+│   ├── odt_manager.py
+│   └── registry_utils.py
 │
-├── gui/
+├── gui/                    # Interfaz gráfica (ttkbootstrap)
 │   ├── __init__.py
-│   └── gui.py                 # Interfaz gráfica moderna (ttkbootstrap)
+│   └── gui.py
 │
-└── scripts/
-    ├── __init__.py
-    ├── installer.py           # Instalación de Office
-    └── uninstaller.py         # Desinstalación de Office
+├── scripts/                # Instalador y desinstalador
+│   ├── __init__.py
+│   ├── installer.py
+│   └── uninstaller.py
+│
+├── config.yaml             # Configuración centralizada
+├── icon.ico                # Icono del ejecutable
+├── main.py                 # Punto de entrada y orquestador del flujo
+├── utils.py                # Utilidades generales (logs, rutas, diálogos)
+│
+├── requirements.txt        # Dependencias principales
+├── requirements-dev.txt    # Dependencias de desarrollo/tipado
+│
+├── nuitka_build_instructions.bat  # Script de compilación Nuitka
+│
+├── README.md               # Documentación principal
+├── CHANGELOG.md            # Historial de cambios
+├── LICENSE                 # Licencia del proyecto
 ```
 
 ---
