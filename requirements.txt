@@ -1,0 +1,7 @@
+colorama
+ttkbootstrap
+pyyaml
+requests
+tqdm
+scrapy
+urllib3

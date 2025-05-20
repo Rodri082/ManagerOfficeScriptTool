@@ -1,0 +1,337 @@
+# ==========================
+# Configuración de Office Modular Script
+# ==========================
+
+# --- Versiones de Office soportadas ---
+# Cada clave es el nombre visible de la versión.
+# product_id y channel se usan para generar el XML de instalación.
+office_versions:
+  Office Standard 2013:
+    product_id: StandardRetail
+    channel: Current
+  Office Professional Plus 2013:
+    product_id: ProplusRetail
+    channel: Current
+  Office Standard 2016:
+    product_id: StandardRetail
+    channel: Current
+  Office Professional Plus 2016:
+    product_id: ProplusRetail
+    channel: Current
+  Office Standard 2019:
+    product_id: Standard2019Volume
+    channel: PerpetualVL2019
+  Office Professional Plus 2019:
+    product_id: ProPlus2019Volume
+    channel: PerpetualVL2019
+  Office LTSC Standard 2021:
+    product_id: Standard2021Volume
+    channel: PerpetualVL2021
+  Office LTSC Professional Plus 2021:
+    product_id: ProPlus2021Volume
+    channel: PerpetualVL2021
+  Office LTSC Standard 2024:
+    product_id: Standard2024Volume
+    channel: PerpetualVL2024
+  Office LTSC Professional Plus 2024:
+    product_id: ProPlus2024Volume
+    channel: PerpetualVL2024
+  Microsoft 365 HomePremium - Current:
+    product_id: O365HomePremRetail
+    channel: Current
+  Microsoft 365 Apps for business - Current:
+    product_id: O365BusinessRetail
+    channel: Current
+  Microsoft 365 Apps for business - MonthlyEnterprise:
+    product_id: O365BusinessRetail
+    channel: MonthlyEnterprise
+  Microsoft 365 Apps for business - SemiAnnual:
+    product_id: O365BusinessRetail
+    channel: SemiAnnual
+  Microsoft 365 Apps for enterprise - Current:
+    product_id: O365ProPlusRetail
+    channel: Current
+  Microsoft 365 Apps for enterprise - MonthlyEnterprise:
+    product_id: O365ProPlusRetail
+    channel: MonthlyEnterprise
+  Microsoft 365 Apps for enterprise - SemiAnnual:
+    product_id: O365ProPlusRetail
+    channel: SemiAnnual
+
+# --- Aplicaciones disponibles por versión ---
+# Cada clave es una versión de Office y la lista son las apps seleccionables.
+office_apps:
+  Office Standard 2013:
+    - Word
+    - Excel
+    - PowerPoint
+    - Outlook
+    - OneNote
+    - Publisher
+    - Groove
+  Office Professional Plus 2013:
+    - Word
+    - Excel
+    - PowerPoint
+    - Outlook
+    - OneNote
+    - Publisher
+    - Access
+    - InfoPath
+    - Lync
+    - Groove
+  Office Standard 2016:
+    - Word
+    - Excel
+    - PowerPoint
+    - Outlook
+    - OneNote
+    - Publisher
+    - OneDrive
+    - Groove
+  Office Professional Plus 2016:
+    - Word
+    - Excel
+    - PowerPoint
+    - Outlook
+    - OneNote
+    - Publisher
+    - OneDrive
+    - Access
+    - Lync
+    - Groove
+  Office Standard 2019:
+    - Word
+    - Excel
+    - PowerPoint
+    - Outlook
+    - OneNote
+    - Publisher
+    - OneDrive
+    - Groove
+  Office Professional Plus 2019:
+    - Word
+    - Excel
+    - PowerPoint
+    - Outlook
+    - OneNote
+    - Publisher
+    - OneDrive
+    - Access
+    - Lync
+    - Groove
+  Office LTSC Standard 2021:
+    - Word
+    - Excel
+    - PowerPoint
+    - Outlook
+    - OneNote
+    - Publisher
+    - OneDrive
+  Office LTSC Professional Plus 2021:
+    - Word
+    - Excel
+    - PowerPoint
+    - Outlook
+    - OneNote
+    - Publisher
+    - OneDrive
+    - Access
+    - Teams
+    - Lync
+  Office LTSC Standard 2024:
+    - Word
+    - Excel
+    - PowerPoint
+    - Outlook
+    - OneNote
+    - OneDrive
+  Office LTSC Professional Plus 2024:
+    - Word
+    - Excel
+    - PowerPoint
+    - Outlook
+    - OneNote
+    - OneDrive
+    - Access
+    - Lync
+  Microsoft 365 HomePremium - Current:
+    - Word
+    - Excel
+    - PowerPoint
+    - Outlook
+    - OneNote
+    - Publisher
+    - Access
+    - OneDrive
+  Microsoft 365 Apps for business - Current:
+    - Word
+    - Excel
+    - PowerPoint
+    - Outlook
+    - OneNote
+    - Teams
+    - Publisher
+    - Access
+    - Lync
+    - OneDrive
+    - Groove
+  Microsoft 365 Apps for business - MonthlyEnterprise:
+    - Word
+    - Excel
+    - PowerPoint
+    - Outlook
+    - OneNote
+    - Teams
+    - Publisher
+    - Access
+    - Lync
+    - OneDrive
+    - Groove
+  Microsoft 365 Apps for business - SemiAnnual:
+    - Word
+    - Excel
+    - PowerPoint
+    - Outlook
+    - OneNote
+    - Teams
+    - Publisher
+    - Access
+    - Lync
+    - OneDrive
+    - Groove
+  Microsoft 365 Apps for enterprise - Current:
+    - Word
+    - Excel
+    - PowerPoint
+    - Outlook
+    - OneNote
+    - Teams
+    - Publisher
+    - Access
+    - Lync
+    - OneDrive
+    - Groove
+  Microsoft 365 Apps for enterprise - MonthlyEnterprise:
+    - Word
+    - Excel
+    - PowerPoint
+    - Outlook
+    - OneNote
+    - Teams
+    - Publisher
+    - Access
+    - Lync
+    - OneDrive
+    - Groove
+  Microsoft 365 Apps for enterprise - SemiAnnual:
+    - Word
+    - Excel
+    - PowerPoint
+    - Outlook
+    - OneNote
+    - Teams
+    - Publisher
+    - Access
+    - Lync
+    - OneDrive
+    - Groove
+
+# --- Idiomas disponibles ---
+# Clave: nombre visible, Valor: código de idioma usado en el XML de configuración.
+languages:
+  Afrikaans: af-ZA
+  Albanian: sq-AL
+  Arabic: ar-SA
+  Armenian: hy-AM
+  Assamese: as-IN
+  Azerbaijani (Latin): az-Latn-AZ
+  Bangla (Bangladesh): bn-BD
+  Bangla (Bengali India): bn-IN
+  Basque (Basque): eu-ES
+  Bosnian (Latin): bs-latn-BA
+  Bulgarian: bg-BG
+  Catalan: ca-ES
+  Catalan (Valencia): ca-ES-valencia
+  Chinese (Simplified): zh-CN
+  Chinese (Traditional): zh-TW
+  Croatian: hr-HR
+  Czech: cs-CZ
+  Danish: da-DK
+  Dutch: nl-NL
+  English: en-US
+  English UK: en-GB
+  Estonian: et-EE
+  Finnish: fi-FI
+  French: fr-FR
+  French Canada: fr-CA
+  Galician: gl-ES
+  Georgian: ka-GE
+  German: de-DE
+  Greek: el-GR
+  Gujarati: gu-IN
+  Hausa: ha-Latn-NG
+  Hebrew: he-IL
+  Hindi: hi-IN
+  Hungarian: hu-HU
+  Icelandic: is-IS
+  Igbo: ig-NG
+  Indonesian: id-ID
+  Irish: ga-IE
+  isiXhosa: xh-ZA
+  isiZulu: zu-ZA
+  Italian: it-IT
+  Japanese: ja-JP
+  Kannada: kn-IN
+  Kazakh: kk-KZ
+  Kinyarwanda: rw-RW
+  KiSwahili: sw-KE
+  Konkani: kok-IN
+  Korean: ko-KR
+  Kyrgyz: ky-KG
+  Latvian: lv-LV
+  Lithuanian: lt-LT
+  Luxembourgish: lb-LU
+  Macedonian (North Macedonia): mk-MK
+  Malay (Latin): ms-MY
+  Malayalam: ml-IN
+  Maltese: mt-MT
+  Maori: mi-NZ
+  Marathi: mr-IN
+  Nepali: ne-NP
+  Norwegian Bokmål: nb-NO
+  Norwegian Nynorsk: nn-NO
+  Odia: or-IN
+  Pashto: ps-AF
+  Persian: fa-IR
+  Polish: pl-PL
+  Portuguese (Portugal): pt-PT
+  Portuguese (Brazil): pt-BR
+  Punjabi (Gurmukhi): pa-IN
+  Romanian: ro-RO
+  Romansh: rm-CH
+  Russian: ru-RU
+  Scottish Gaelic: gd-GB
+  Serbian (Cyrillic, Serbia): sr-cyrl-RS
+  Serbian (Latin, Serbia): sr-latn-RS
+  Serbian (Cyrillic, Bosnia & Herzegovina): sr-cyrl-BA
+  Sesotho sa Leboa: nso-ZA
+  Setswana: tn-ZA
+  Sinhala: si-LK
+  Slovak: sk-SK
+  Slovenian: sl-SI
+  Spanish: es-ES
+  Spanish Mexico: es-MX
+  Swedish: sv-SE
+  Tamil: ta-IN
+  Tatar (Cyrillic): tt-RU
+  Telugu: te-IN
+  Thai: th-TH
+  Turkish: tr-TR
+  Ukrainian: uk-UA
+  Urdu: ur-PK
+  Uzbek (Latin): uz-Latn-UZ
+  Vietnamese: vi-VN
+  Welsh: cy-GB
+  Wolof: wo-SN
+  Yoruba: yo-NG

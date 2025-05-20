@@ -3,6 +3,37 @@
 Historial de cambios del proyecto **ManagerOfficeScriptTool**
 
 ---
+## [5.0] - 2025-05-19
+### 🚀 Modularización total y refactor profesional
+- El proyecto se reestructura completamente: de un solo archivo (`ManagerOfficeScriptTool.py`) a un paquete modularizado.
+- Separación clara de responsabilidades en submódulos:
+  - `core/`: lógica de negocio (gestión de Office, registro, ODT, instalación detectada).
+  - `gui/`: interfaz gráfica moderna con ttkbootstrap.
+  - `scripts/`: instalador y desinstalador.
+  - `utils.py`: utilidades generales.
+  - `config.yaml`: configuración centralizada.
+  - `main.py`: punto de entrada y orquestador del flujo.
+- Cada módulo y clase cuenta con docstrings detallados y tipado de argumentos.
+
+### 🛠️ Mejoras de arquitectura y mantenibilidad
+- Imports reorganizados y relativos a la nueva estructura de carpetas.
+- Configuración, versiones, canales y apps movidos a `config.yaml` para fácil mantenimiento.
+- Limpieza y manejo robusto de carpetas temporales.
+- Logging y manejo de errores mejorados en todos los módulos.
+- Cumplimiento estricto de PEP8: líneas ≤ 79 caracteres, uso de paréntesis en prints y logs largos.
+- Uso de Black, isort, flake8 y mypy recomendado y compatible.
+
+### 👤 Experiencia de usuario y extensibilidad
+- Mensajes de usuario claros y coloridos en consola y GUI.
+- Validaciones exhaustivas en la GUI y en consola.
+- Modularidad que facilita la extensión (nuevas versiones, apps, idiomas, etc.).
+- Preparado para integración de tests y CI/CD.
+
+### 📦 Listo para producción y colaboración
+- Estructura profesional, fácil de mantener, escalar y compartir en GitHub.
+- Recomendaciones para agregar `README.md`, `requirements.txt`, `.gitignore` y carpeta `tests/` para futuras mejoras.
+
+---
 
 ## [4.2] - 2025-05-06  
 ### 🔄 Migración de motor de descarga: de Playwright a Scrapy  

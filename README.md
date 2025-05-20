@@ -1,116 +1,150 @@
-# ManagerOfficeScriptTool - Instalación y Desinstalación Automática de Office
+# ManagerOfficeScriptTool
 
-Este proyecto facilita la instalación y desinstalación de Microsoft Office en equipos Windows mediante un script Python. Es compatible con Office 2013, 2016, 2019, LTSC-2021, LTSC-2024 y 365 (32 y 64 Bits).
-
----
-
-## ¿Qué es ManagerOfficeScriptTool?
-
-`ManagerOfficeScriptTool` es una herramienta automatizada para detectar, desinstalar e instalar Microsoft Office, todo desde una sola aplicación. A partir de la versión **4.0**, el proyecto fue **refactorizado completamente** en Python utilizando clases, logging profesional, sanitización de rutas sensibles y estructura modular.  
-Desde la versión **4.2**, el ejecutable se compila con **Nuitka**, permitiendo mayor rendimiento y menor tasa de falsos positivos en antivirus.
-
-> El código fuente es completamente abierto. Puedes revisarlo, modificarlo y compilar tu propia versión.
+**Gestión avanzada, modular y automatizada de instalaciones de Microsoft Office en Windows**
 
 ---
 
-## Características
+## 🚀 ¿Qué es ManagerOfficeScriptTool?
 
-- ✅ **Refactorización completa en clases**: `OfficeManager`, `ODTManager`, `OfficeUninstaller`, `OfficeInstaller`, `OfficeSelectionWindow`.
-- ✅ **Desinstalación limpia utilizando ODT** (ya no se utiliza SaRA).
-- ✅ **Detección detallada** de versiones instaladas de Office.
-- ✅ **Interfaz gráfica (Tkinter)** mejorada para seleccionar versión, apps, arquitectura e idioma.
-- ✅ **Instalación automatizada** mediante configuración XML y `setup.exe`.
-- ✅ **Descarga directa del ODT desde Microsoft** usando **Scrapy** (sin Selenium).
-- ✅ **Descarga robusta con reanudación**, archivo temporal y verificación por tamaño/nombre.
-- ✅ **Permisos de administrador solicitados automáticamente** (`--windows-uac-admin`).
-- ✅ **Logging completo** en `logs/application.log`, con rutas y claves del registro anonimizadas.
+`ManagerOfficeScriptTool` es una herramienta profesional y modular para detectar, desinstalar e instalar Microsoft Office en equipos Windows.  
+A partir de la versión **5.0**, el proyecto ha sido completamente **refactorizado y modularizado**, separando la lógica en submódulos claros y configurables, con una interfaz gráfica moderna y soporte para múltiples versiones, arquitecturas e idiomas.
 
 ---
 
-## Requisitos
+## 🗂️ Estructura del Proyecto
 
-- Windows 10 o superior.
-- Acceso a internet (para descargar ODT).
-- No es necesario tener Python instalado: se distribuye como `.exe`.
-
----
-
-## Instalación
-
-1. **Descarga la última versión** desde [Releases en GitHub](https://github.com/Rodri082/ManagerOfficeScriptTool/releases).
-2. **Ejecuta como administrador** `ManagerOfficeScriptTool.exe`.
-3. Detectará las versiones instaladas de Office, te ofrecerá desinstalarlas y luego te permitirá instalar una nueva versión desde una interfaz gráfica.
-
----
-
-## Uso
-
-1. **Inicio**: Solicita permisos de administrador (UAC).
-2. **Detección**: Se listan las versiones instaladas de Office.
-3. **Desinstalación opcional**: Puedes elegir una o más versiones para desinstalar con ODT.
-4. **Instalación nueva**: Se abre la GUI para elegir versión, arquitectura, idioma y apps.
-5. **Ejecución**: Se genera un `configuration.xml` y se lanza la instalación usando `setup.exe`.
-
----
-
-## Archivos que descarga
-
-- **Office Deployment Tool (ODT)** desde fuentes oficiales de Microsoft:
-  - [ODT 2013](https://www.microsoft.com/en-us/download/details.aspx?id=36778)
-  - [ODT 2016 y posteriores](https://www.microsoft.com/en-us/download/details.aspx?id=49117)
-
----
-
-## Compilación desde el código fuente
-
-> Consulta [`CHANGELOG.md`](./CHANGELOG.md) para ver las versiones exactas de herramientas y mejoras aplicadas.
-
-El proyecto ahora se compila con [Nuitka](https://nuitka.net/) para mejor rendimiento y estabilidad:
-
-```bash
-python -m nuitka ManagerOfficeScriptTool.py ^
-  --standalone ^
-  --enable-plugin=tk-inter ^
-  --windows-icon-from-ico=icon.ico ^
-  --company-name="Rodri082" ^
-  --product-name="ManagerOfficeScriptTool" ^
-  --file-version=4.2.0.0 ^
-  --product-version=4.2.0.0 ^
-  --file-description="Herramienta ManagerOfficeScriptTool" ^
-  --copyright="Licencia MIT © 2024 Rodri082" ^
-  --windows-uac-admin ^
-  --output-dir=build ^
-  --msvc=latest ^
-  --lto=yes ^
-  --report=build/compilacion.xml
+```
+ManagerOfficeScriptTool/
+│
+├── main.py                # Punto de entrada y orquestador del flujo
+├── config.yaml            # Configuración centralizada (versiones, apps, idiomas)
+├── utils.py               # Utilidades generales (logs, rutas, diálogos)
+│
+├── core/
+│   ├── __init__.py
+│   ├── office_manager.py      # Detección y visualización de instalaciones
+│   ├── office_installation.py # Representación de una instalación detectada
+│   ├── odt_manager.py         # Descarga y extracción de ODT
+│   └── registry_utils.py      # Acceso seguro al registro de Windows
+│
+├── gui/
+│   ├── __init__.py
+│   └── gui.py                 # Interfaz gráfica moderna (ttkbootstrap)
+│
+└── scripts/
+    ├── __init__.py
+    ├── installer.py           # Instalación de Office
+    └── uninstaller.py         # Desinstalación de Office
 ```
 
 ---
 
-## Transparencia
+## ✨ Características Principales
 
-Este proyecto es **100% open source**. No instala software de terceros, no envía datos, y solo descarga herramientas directamente desde servidores oficiales de Microsoft.
-
----
-
-## Créditos
-
-- **[Office Deployment Tool (ODT)](http://aka.ms/ODT)**
-
----
-
-## Estado del Proyecto
-
-El proyecto está en estado **activo y estable**. Ha evolucionado de un script simple a una herramienta modular, robusta y confiable.
-
-### 🛠 Planes Futuros
-
-- Reemplazo completo de consola por GUI enriquecida (Tkinter + barra de progreso).
-- Vista de logs en tiempo real desde la aplicación.
-- Soporte para más idiomas.
+- **Modular y escalable**: Separación clara de lógica, GUI, utilidades y scripts.
+- **Configuración centralizada**: Todas las versiones, canales, apps e idiomas en `config.yaml`.
+- **Detección avanzada** de instalaciones de Office (todas las versiones soportadas).
+- **Desinstalación limpia** usando Office Deployment Tool (ODT).
+- **Instalación automatizada** con generación dinámica de `configuration.xml`.
+- **Interfaz gráfica moderna** (ttkbootstrap) para seleccionar versión, apps, arquitectura e idioma.
+- **Descarga directa y robusta** del ODT desde Microsoft, con reintentos y validación.
+- **Logging profesional** y rutas anonimizadas.
+- **Cumplimiento estricto de PEP8** y uso de herramientas como Black, isort, flake8 y mypy.
+- **Preparado para integración continua y testing**.
 
 ---
 
-## Licencia
+## 🖥️ Requisitos
+
+- Windows 10 o superior.
+- Python 3.9+ (para desarrollo) o ejecutable standalone.
+- Acceso a internet para descargar ODT y actualizaciones.
+
+---
+
+## ⚙️ Instalación y Uso
+
+1. **Clona el repositorio** o descarga la última release.
+2. Instala las dependencias:
+   ```sh
+   pip install -r requirements.txt
+   ```
+3. Ejecuta el script principal:
+   ```sh
+   python main.py
+   ```
+4. Sigue las instrucciones en consola y/o GUI para detectar, desinstalar e instalar Office.
+
+---
+
+## 🧩 Configuración
+
+Edita `config.yaml` para:
+- Agregar/quitar versiones soportadas.
+- Definir canales y product IDs.
+- Personalizar las aplicaciones disponibles por versión.
+- Añadir nuevos idiomas.
+
+---
+
+## 🛡️ Seguridad y Transparencia
+
+- **100% open source**.
+- Solo descarga herramientas oficiales de Microsoft.
+- No instala software de terceros ni envía datos personales.
+- Logging seguro y rutas anonimizadas.
+
+---
+
+## 📝 Ejemplo de Flujo
+
+1. **Detección**: El script detecta todas las instalaciones de Office.
+2. **Desinstalación**: Puedes elegir desinstalar todas, ninguna o una versión específica.
+3. **Instalación**: Selecciona versión, arquitectura, idioma y apps desde la GUI.
+4. **Ejecución**: Se genera el XML y se lanza la instalación con ODT.
+5. **Limpieza**: Elimina carpetas temporales y muestra logs detallados.
+
+---
+
+## 🛠️ Desarrollo y Contribución
+
+- Cumple con PEP8 y buenas prácticas.
+- Usa Black, isort, flake8 y mypy para mantener la calidad.
+- Estructura lista para agregar tests (`tests/`).
+- Pull requests y sugerencias son bienvenidas.
+
+---
+
+## 📦 Compilación a ejecutable
+
+Se recomienda usar [Nuitka](https://nuitka.net/) para compilar el proyecto a `.exe`:
+
+```sh
+python -m nuitka main.py --standalone --enable-plugin=tk-inter --windows-uac-admin
+```
+
+Consulta el `CHANGELOG.md` para detalles de versiones y mejoras.
+
+---
+
+## 📄 Licencia
 
 Este proyecto está licenciado bajo la [Licencia MIT](./LICENSE).
+
+---
+
+## 🙌 Créditos
+
+- [Office Deployment Tool (ODT)](http://aka.ms/ODT)
+- [ttkbootstrap](https://ttkbootstrap.readthedocs.io/)
+- [colorama](https://pypi.org/project/colorama/)
+- [Scrapy](https://scrapy.org/)
+
+---
+
+## 📣 Estado del Proyecto
+
+**Activo y estable.**  
+Listo para producción, colaboración y futuras mejoras.
+
+---
