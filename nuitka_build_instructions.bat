@@ -1,15 +1,32 @@
-python -m nuitka main.py ^
+@echo off
+setlocal
+
+REM Detectar dinámicamente la ruta de scrapy/mime.types
+FOR /F "usebackq delims=" %%F IN (`py -c "import scrapy; from pathlib import Path; p = Path(scrapy.__file__).parent / 'mime.types'; print(p if p.exists() else '')"`) DO (
+    set "MIME_TYPES_PATH=%%F"
+)
+
+IF NOT DEFINED MIME_TYPES_PATH (
+    echo [ERROR] No se encontró el archivo mime.types de Scrapy.
+    exit /b 1
+)
+
+echo [OK] Ruta mime.types detectada: %MIME_TYPES_PATH%
+
+REM Compilación con Nuitka
+py -m nuitka ^
 --standalone ^
 --enable-plugin=tk-inter ^
 --windows-icon-from-ico=icon.ico ^
 --include-data-file=config.yaml=config.yaml ^
+--include-data-file="%MIME_TYPES_PATH%"=scrapy/mime.types ^
 --include-package=core ^
 --include-package=gui ^
 --include-package=scripts ^
 --include-module=utils ^
 --include-package=scrapy ^
---include-package=scrapy.spiders ^
 --include-package=scrapy.spiderloader ^
+--include-package=scrapy.spiders ^
 --include-package=scrapy.utils ^
 --include-package=scrapy.crawler ^
 --include-package=scrapy.selector ^
@@ -32,4 +49,6 @@ python -m nuitka main.py ^
 --output-filename=ManagerOfficeScriptTool.exe ^
 --msvc=latest ^
 --lto=yes ^
---report=build/compilacion.xml
+main.py
+
+endlocal

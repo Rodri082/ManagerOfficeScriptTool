@@ -21,6 +21,7 @@ from typing import Optional
 from urllib.parse import urlparse
 
 import requests
+import scrapy.utils.versions
 from colorama import Fore
 from requests.adapters import HTTPAdapter
 from scrapy import Request, Spider
@@ -49,6 +50,15 @@ def run_scrapy_spider_process(temp_file_path, download_id):
     logging.getLogger("scrapy").setLevel(logging.CRITICAL)
     logging.getLogger("twisted").setLevel(logging.CRITICAL)
     logging.getLogger("scrapy.utils.log").setLevel(logging.CRITICAL)
+
+    try:
+
+        def _patched_version(package):
+            return "unknown"
+
+        scrapy.utils.versions._version = _patched_version
+    except Exception:
+        pass
 
     class ODTSpider(Spider):
         name = "odt_spider"
