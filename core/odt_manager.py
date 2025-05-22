@@ -26,7 +26,6 @@ from colorama import Fore
 from requests.adapters import HTTPAdapter
 from scrapy import Request, Spider
 from scrapy.crawler import CrawlerProcess
-from scrapy.utils.log import configure_logging
 from tqdm import tqdm
 from urllib3.util.retry import Retry
 from utils import safe_log_path
@@ -45,11 +44,6 @@ def run_scrapy_spider_process(temp_file_path, download_id):
 
     El resultado es un archivo JSON con las claves: url, name, size.
     """
-    configure_logging({"LOG_ENABLED": False})
-    logging.getLogger("scrapy").propagate = False
-    logging.getLogger("scrapy").setLevel(logging.CRITICAL)
-    logging.getLogger("twisted").setLevel(logging.CRITICAL)
-    logging.getLogger("scrapy.utils.log").setLevel(logging.CRITICAL)
 
     try:
 
@@ -85,7 +79,7 @@ def run_scrapy_spider_process(temp_file_path, download_id):
             with open(temp_file_path, "w", encoding="utf-8") as f:
                 json.dump(result, f)
 
-    process = CrawlerProcess()
+    process = CrawlerProcess({"LOG_LEVEL": "ERROR"})
     process.crawl(ODTSpider)
     process.start()
 

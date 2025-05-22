@@ -15,6 +15,7 @@ echo [OK] Ruta mime.types detectada: %MIME_TYPES_PATH%
 
 REM Compilación con Nuitka
 py -m nuitka ^
+main.py ^
 --standalone ^
 --enable-plugin=tk-inter ^
 --windows-icon-from-ico=icon.ico ^
@@ -25,18 +26,6 @@ py -m nuitka ^
 --include-package=scripts ^
 --include-module=utils ^
 --include-package=scrapy ^
---include-package=scrapy.spiderloader ^
---include-package=scrapy.spiders ^
---include-package=scrapy.utils ^
---include-package=scrapy.crawler ^
---include-package=scrapy.selector ^
---include-package=scrapy.link ^
---include-package=scrapy.downloadermiddlewares ^
---include-package=scrapy.pipelines ^
---include-package=scrapy.extensions ^
---include-package=scrapy.core ^
---include-package=scrapy.settings ^
---include-package=scrapy.logformatter ^
 --nofollow-import-to=unittest,doctest ^
 --company-name="Rodri082" ^
 --product-name="ManagerOfficeScriptTool" ^
@@ -48,7 +37,6 @@ py -m nuitka ^
 --output-dir=build ^
 --output-filename=ManagerOfficeScriptTool.exe ^
 --msvc=latest ^
---lto=yes ^
-main.py
+--lto=yes
 
 endlocal
