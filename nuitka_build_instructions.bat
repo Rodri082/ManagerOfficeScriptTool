@@ -20,7 +20,7 @@ if not defined MIME_TYPES_PATH (
 echo [OK] Ruta mime.types detectada: "%MIME_TYPES_PATH%"
 
 REM Compilación con Nuitka
-py -m nuitka ^
+python -m nuitka ^
     main.py ^
     --standalone ^
     --enable-plugin=tk-inter ^
