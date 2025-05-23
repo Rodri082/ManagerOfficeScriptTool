@@ -21,6 +21,20 @@ if not exist main.py (
     exit /b 1
 )
 
+:: Verificar si el archivo config.yaml existe
+if not exist config.yaml (
+    echo [ERROR] No se encontró config.yaml
+    pause
+    exit /b 1
+)
+
+:: Verificar si el archivo icon.ico existe
+if not exist icon.ico (
+    echo [ERROR] No se encontró icon.ico
+    pause
+    exit /b 1
+)
+
 :: Verificar si el compilador MSVC (cl.exe) está disponible
 where cl >nul 2>&1
 if errorlevel 1 (
@@ -62,7 +76,7 @@ echo [OK] Ruta mime.types detectada: "!MIME_TYPES_PATH!"
 
 echo Iniciando compilacion con Nuitka...
 
-python -m nuitka ^
+py -m nuitka ^
     main.py ^
     --standalone ^
     --enable-plugin=tk-inter ^
@@ -93,16 +107,22 @@ if errorlevel 1 (
     exit /b 1
 )
 
+:: Verificar si el ejecutable fue creado
+:: Se verifica en dos ubicaciones posibles: main.dist y la raíz de build
+set "EXE_PATH="
 if exist "build\main.dist\ManagerOfficeScriptTool.exe" (
-    echo [OK] Compilación completada exitosamente.
-    echo Ejecutable generado en: %cd%\build\main.dist\ManagerOfficeScriptTool.exe
-) else (
-    if exist "build\ManagerOfficeScriptTool.exe" (
-        echo [OK] Compilación completada exitosamente.
-        echo Ejecutable generado en: %cd%\build\ManagerOfficeScriptTool.exe
-    )
+    set "EXE_PATH=%cd%\build\main.dist\ManagerOfficeScriptTool.exe"
+) else if exist "build\ManagerOfficeScriptTool.exe" (
+    set "EXE_PATH=%cd%\build\ManagerOfficeScriptTool.exe"
 )
 
+if defined EXE_PATH (
+    echo [OK] Compilación completada exitosamente.
+    echo Ejecutable generado en: !EXE_PATH!
+) else (
+    echo [ERROR] Compilación finalizada pero no se encontró el ejecutable.
+)
+:: --- Fin de lógica principal ---
 
 pause
 endlocal
