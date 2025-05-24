@@ -12,9 +12,8 @@ from pathlib import Path
 from typing import List
 
 from colorama import Fore
-from core.odt_manager import ODTManager
-from core.office_installation import OfficeInstallation
-from utils import safe_log_path
+from manager_office_tool.core import ODTManager, OfficeInstallation
+from manager_office_tool.utils import safe_log_path
 
 
 class OfficeUninstaller:

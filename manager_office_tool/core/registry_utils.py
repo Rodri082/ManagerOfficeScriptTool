@@ -11,7 +11,7 @@ import platform
 import winreg
 from typing import Dict, List, Tuple
 
-from utils import safe_log_registry_key
+from manager_office_tool.utils import safe_log_registry_key
 
 
 class RegistryReader:

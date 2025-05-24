@@ -11,8 +11,9 @@ from pathlib import Path
 from typing import List
 
 from colorama import Fore
-from core.office_installation import OfficeInstallation
-from core.registry_utils import RegistryReader
+
+from .office_installation import OfficeInstallation
+from .registry_utils import RegistryReader
 
 
 class OfficeManager:

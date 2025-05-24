@@ -14,9 +14,13 @@ from pathlib import Path
 import ttkbootstrap as tb
 import yaml
 from colorama import Fore
-from core.odt_manager import ODTManager
+from manager_office_tool.core import ODTManager
+from manager_office_tool.utils import (
+    center_window,
+    get_data_path,
+    safe_log_path,
+)
 from ttkbootstrap.dialogs import Messagebox
-from utils import center_window, get_data_path, safe_log_path
 
 
 class OfficeSelectionWindow:

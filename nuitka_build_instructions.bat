@@ -68,11 +68,12 @@ for /f "usebackq delims=" %%F in (`py -c "import scrapy;from pathlib import Path
 
 if "!MIME_TYPES_PATH!"=="" (
     echo [ERROR] No se encontró el archivo mime.types de Scrapy.
+    echo Intenta reinstalar Scrapy con: pip install --force-reinstall scrapy
     pause
     exit /b 1
 )
 
-echo [OK] Ruta mime.types detectada: "!MIME_TYPES_PATH!"
+echo [OK] Ruta mime.types detectada.
 
 echo Iniciando compilacion con Nuitka...
 
@@ -81,14 +82,10 @@ py -m nuitka ^
     --standalone ^
     --enable-plugin=tk-inter ^
     --windows-icon-from-ico=icon.ico ^
-    --include-data-file=config.yaml=config.yaml ^
-    --include-data-file="!MIME_TYPES_PATH!"=scrapy/mime.types ^
-    --include-package=core ^
-    --include-package=gui ^
-    --include-package=scripts ^
-    --include-module=utils ^
     --include-package=scrapy ^
-    --nofollow-import-to=unittest,doctest ^
+    --include-data-file=./config.yaml=config.yaml ^
+    --include-data-file="!MIME_TYPES_PATH!"=scrapy/mime.types ^
+    --nofollow-import-to=unittest,doctest,types_PyYAML,types_requests ^
     --company-name="Rodri082" ^
     --product-name="ManagerOfficeScriptTool" ^
     --file-version=5.0.0.0 ^
@@ -98,8 +95,7 @@ py -m nuitka ^
     --windows-uac-admin ^
     --output-dir=build ^
     --output-filename=ManagerOfficeScriptTool.exe ^
-    --msvc=latest ^
-    --lto=yes
+    --msvc=latest
 
 if errorlevel 1 (
     echo [ERROR] La compilacion fallo.
@@ -117,12 +113,14 @@ if exist "build\main.dist\ManagerOfficeScriptTool.exe" (
 )
 
 if defined EXE_PATH (
-    echo [OK] Compilación completada exitosamente.
+    echo [OK] Compilacion completada exitosamente.
+    echo.
     echo Ejecutable generado en: !EXE_PATH!
 ) else (
     echo [ERROR] Compilación finalizada pero no se encontró el ejecutable.
 )
 :: --- Fin de lógica principal ---
 
+echo.
 pause
 endlocal

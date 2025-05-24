@@ -7,81 +7,31 @@ la URL oficial y Requests para la descarga.
 Incluye manejo de reintentos, descargas reanudables y extracción silenciosa.
 """
 
-import json
 import logging
-import multiprocessing
 import os
 import random
-import re
 import subprocess
 import tempfile
 import time
+from multiprocessing import Pipe, Process
 from pathlib import Path
 from typing import Optional
 from urllib.parse import urlparse
 
 import requests
-import scrapy.utils.versions
 from colorama import Fore
+from manager_office_tool.utils import safe_log_path
 from requests.adapters import HTTPAdapter
-from scrapy import Request, Spider
-from scrapy.crawler import CrawlerProcess
 from tqdm import tqdm
 from urllib3.util.retry import Retry
-from utils import safe_log_path
+
+from .odt_spider import fetch_odt_download_info
 
 
-def run_scrapy_spider_process(temp_file_path, download_id):
-    """
-    Ejecuta un spider de Scrapy en un proceso separado para obtener la URL
-    de descarga del ODT.
-
-    Args:
-        temp_file_path (str): Ruta al archivo temporal donde se guardará el
-            resultado en JSON.
-        download_id (str): ID de descarga de Microsoft para la versión de
-            ODT deseada.
-
-    El resultado es un archivo JSON con las claves: url, name, size.
-    """
-
-    try:
-
-        def _patched_version(package):
-            return "unknown"
-
-        scrapy.utils.versions._version = _patched_version
-    except Exception:
-        pass
-
-    class ODTSpider(Spider):
-        name = "odt_spider"
-        start_urls = [
-            f"https://www.microsoft.com/en-us/download/details.aspx?id={download_id}"  # noqa: E501
-        ]
-        custom_settings = {"LOG_LEVEL": "ERROR"}
-
-        def parse(self, response):
-            for link in response.css("a::attr(href)").getall():
-                if link.endswith(".exe") and "download.microsoft.com" in link:
-                    yield Request(link, callback=self.parse_head)
-
-        def parse_head(self, response):
-            size = int(response.headers.get("Content-Length", 0))
-            cd = response.headers.get("Content-Disposition", b"").decode()
-            match = re.search(r'filename="?([^";]+)', cd)
-            name = (
-                match.group(1)
-                if match
-                else Path(urlparse(response.url).path).name
-            )
-            result = {"url": response.url, "name": name, "size": size}
-            with open(temp_file_path, "w", encoding="utf-8") as f:
-                json.dump(result, f)
-
-    process = CrawlerProcess({"LOG_LEVEL": "ERROR"})
-    process.crawl(ODTSpider)
-    process.start()
+def _fetch_info_in_process(download_id: str, conn):
+    result = fetch_odt_download_info(download_id)
+    conn.send(result)
+    conn.close()
 
 
 class ODTManager:
@@ -104,38 +54,29 @@ class ODTManager:
             raise ValueError(
                 "El directorio de instalación no puede estar vacío"
             )
-        self.office_dir = office_install_dir
+        self.office_dir = Path(office_install_dir)
         self.expected_name: Optional[str] = None
         self.expected_size: Optional[int] = None
 
     def _run_scrapy_spider(self, download_id: str) -> Optional[tuple]:
-        """
-        Lanza el proceso Scrapy y obtiene la información de descarga del ODT.
-
-        Args:
-            download_id (str): ID de descarga de Microsoft.
-
-        Returns:
-            tuple: (url, nombre de archivo, tamaño) o None si falla.
-        """
-        with tempfile.NamedTemporaryFile(
-            mode="w+", suffix=".json", delete=False
-        ) as tmp:
-            temp_path = tmp.name
-
-        p = multiprocessing.Process(
-            target=run_scrapy_spider_process, args=(temp_path, download_id)
+        parent_conn, child_conn = Pipe()
+        p = Process(
+            target=_fetch_info_in_process, args=(download_id, child_conn)
         )
         p.start()
         p.join()
 
-        try:
-            with open(temp_path, "r", encoding="utf-8") as f:
-                result = json.load(f)
+        if parent_conn.poll(1):  # Espera 1 segundo para recibir datos
+            try:
+                result = parent_conn.recv()
                 return result["url"], result["name"], result["size"]
-        except Exception as e:
-            logging.error(f"Fallo al leer resultado del spider: {e}")
-            return None
+            except Exception as e:
+                logging.error(f"Fallo al recibir datos del spider: {e}")
+        else:
+            logging.error(
+                "El proceso terminó, pero no se recibieron datos del spider."
+            )
+        return None
 
     def get_download_url(self, version_identifier: str) -> Optional[str]:
         version_id = (
@@ -340,12 +281,13 @@ class ODTManager:
                         "Error inesperado durante la extracción del ODT."
                     )
         finally:
-            try:
-                tmp_path.unlink()
-            except OSError:
-                logging.warning(
-                    "No se pudo eliminar el archivo temporal: "
-                    f"{sanitized_tmp_path}"
-                )
+            if tmp_path.exists():
+                try:
+                    tmp_path.unlink()
+                except OSError:
+                    logging.warning(
+                        "No se pudo eliminar el archivo temporal: "
+                        f"{sanitized_tmp_path}"
+                    )
 
         return False

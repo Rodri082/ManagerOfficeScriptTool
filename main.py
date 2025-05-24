@@ -41,17 +41,41 @@ import logging
 import multiprocessing
 
 from colorama import Fore, init
-from core.office_manager import OfficeManager
-from gui.gui import OfficeSelectionWindow
-from scripts.installer import OfficeInstaller
-from scripts.uninstaller import run_uninstallers
-from utils import (
+from manager_office_tool import (
+    OfficeInstaller,
+    OfficeManager,
+    OfficeSelectionWindow,
     ask_yes_no,
-    clean_temp_folders,
+    clean_temp_folders_ui,
     ensure_subfolder,
     get_temp_dir,
     init_logging,
+    run_uninstallers,
 )
+
+
+def prepare_environment() -> dict:
+    """
+    Prepara las rutas necesarias para logs, instalación y desinstalación,
+    y configura el logging.
+
+    Returns:
+        dict: Diccionario con las rutas preparadas.
+    """
+    temp_dir = get_temp_dir()
+    logs_folder = ensure_subfolder(temp_dir, "logs")
+    office_install_dir = ensure_subfolder(temp_dir, "InstallOfficeFiles")
+    office_uninstall_dir = ensure_subfolder(temp_dir, "UninstallOfficeFiles")
+
+    init_logging(str(logs_folder))  # Configura logging al inicio
+    init(autoreset=True)  # Inicializa colorama para colores en consola
+
+    return {
+        "temp_dir": temp_dir,
+        "logs_folder": logs_folder,
+        "install_dir": office_install_dir,
+        "uninstall_dir": office_uninstall_dir,
+    }
 
 
 def main() -> None:
@@ -64,24 +88,11 @@ def main() -> None:
     - Permite configurar e instalar una nueva versión de Office.
     - Gestiona errores y limpia archivos temporales al finalizar.
     """
-    # Inicializa variables para las rutas de instalación y desinstalación
-    # de Office, y la carpeta temporal para logs
-    temp_dir = None
-    office_install_dir = None
-    office_uninstall_dir = None
+    env = prepare_environment()
+    logging.info("Entorno preparado correctamente.")
+    office_install_dir = env["install_dir"]
+    office_uninstall_dir = env["uninstall_dir"]
     try:
-        # Crea carpetas temporales para logs y archivos de
-        # instalación/desinstalación
-        temp_dir = get_temp_dir()
-        logs_folder = ensure_subfolder(temp_dir, "logs")
-        office_install_dir = ensure_subfolder(temp_dir, "InstallOfficeFiles")
-        office_uninstall_dir = ensure_subfolder(
-            temp_dir, "UninstallOfficeFiles"
-        )
-        # Inicializa logs y colorama, y ejecuta el flujo principal
-        init_logging(str(logs_folder))
-        init(autoreset=True)
-
         # Pregunta al usuario si desea detectar versiones de Office instaladas
         if ask_yes_no("¿Desea detectar las versiones de Office instaladas?"):
             manager = OfficeManager(show_all=False)
@@ -222,7 +233,7 @@ def main() -> None:
         if office_uninstall_dir is not None:
             folders_to_clean.append(office_uninstall_dir)
         if folders_to_clean:
-            clean_temp_folders(folders_to_clean)
+            clean_temp_folders_ui(folders_to_clean)
 
 
 if __name__ == "__main__":

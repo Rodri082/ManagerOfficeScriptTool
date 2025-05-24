@@ -11,7 +11,7 @@ import subprocess
 from pathlib import Path
 
 from colorama import Fore
-from utils import safe_log_path
+from manager_office_tool.utils import safe_log_path
 
 
 class OfficeInstaller:
