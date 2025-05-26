@@ -36,25 +36,25 @@ office_versions:
   Office LTSC Professional Plus 2024:
     product_id: ProPlus2024Volume
     channel: PerpetualVL2024
-  Microsoft 365 HomePremium - Current:
+  Office 365 HomePremium - Current:
     product_id: O365HomePremRetail
     channel: Current
-  Microsoft 365 Apps for business - Current:
+  Office 365 Apps for business - Current:
     product_id: O365BusinessRetail
     channel: Current
-  Microsoft 365 Apps for business - MonthlyEnterprise:
+  Office 365 Apps for business - MonthlyEnterprise:
     product_id: O365BusinessRetail
     channel: MonthlyEnterprise
-  Microsoft 365 Apps for business - SemiAnnual:
+  Office 365 Apps for business - SemiAnnual:
     product_id: O365BusinessRetail
     channel: SemiAnnual
-  Microsoft 365 Apps for enterprise - Current:
+  Office 365 Apps for enterprise - Current:
     product_id: O365ProPlusRetail
     channel: Current
-  Microsoft 365 Apps for enterprise - MonthlyEnterprise:
+  Office 365 Apps for enterprise - MonthlyEnterprise:
     product_id: O365ProPlusRetail
     channel: MonthlyEnterprise
-  Microsoft 365 Apps for enterprise - SemiAnnual:
+  Office 365 Apps for enterprise - SemiAnnual:
     product_id: O365ProPlusRetail
     channel: SemiAnnual
 
@@ -155,7 +155,7 @@ office_apps:
     - OneDrive
     - Access
     - Lync
-  Microsoft 365 HomePremium - Current:
+  Office 365 HomePremium - Current:
     - Word
     - Excel
     - PowerPoint
@@ -164,19 +164,7 @@ office_apps:
     - Publisher
     - Access
     - OneDrive
-  Microsoft 365 Apps for business - Current:
-    - Word
-    - Excel
-    - PowerPoint
-    - Outlook
-    - OneNote
-    - Teams
-    - Publisher
-    - Access
-    - Lync
-    - OneDrive
-    - Groove
-  Microsoft 365 Apps for business - MonthlyEnterprise:
+  Office 365 Apps for business - Current:
     - Word
     - Excel
     - PowerPoint
@@ -188,7 +176,7 @@ office_apps:
     - Lync
     - OneDrive
     - Groove
-  Microsoft 365 Apps for business - SemiAnnual:
+  Office 365 Apps for business - MonthlyEnterprise:
     - Word
     - Excel
     - PowerPoint
@@ -200,7 +188,7 @@ office_apps:
     - Lync
     - OneDrive
     - Groove
-  Microsoft 365 Apps for enterprise - Current:
+  Office 365 Apps for business - SemiAnnual:
     - Word
     - Excel
     - PowerPoint
@@ -212,7 +200,7 @@ office_apps:
     - Lync
     - OneDrive
     - Groove
-  Microsoft 365 Apps for enterprise - MonthlyEnterprise:
+  Office 365 Apps for enterprise - Current:
     - Word
     - Excel
     - PowerPoint
@@ -224,7 +212,19 @@ office_apps:
     - Lync
     - OneDrive
     - Groove
-  Microsoft 365 Apps for enterprise - SemiAnnual:
+  Office 365 Apps for enterprise - MonthlyEnterprise:
+    - Word
+    - Excel
+    - PowerPoint
+    - Outlook
+    - OneNote
+    - Teams
+    - Publisher
+    - Access
+    - Lync
+    - OneDrive
+    - Groove
+  Office 365 Apps for enterprise - SemiAnnual:
     - Word
     - Excel
     - PowerPoint

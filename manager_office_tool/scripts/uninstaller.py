@@ -73,7 +73,7 @@ class OfficeUninstaller:
             uninstall_dir.mkdir(parents=True, exist_ok=True)
         except PermissionError:
             msg = (
-                "No se pudo crear el directorio de desinstalación: "
+                "[CONSOLE] No se pudo crear el directorio de desinstalación: "
                 f"{sanitized_uninstall_path}"
             )
             logging.error(f"{Fore.RED}{msg}{Style.RESET_ALL}")
@@ -110,7 +110,7 @@ class OfficeUninstaller:
         )
 
         if not self.odt_manager.download_and_extract(version_identifier):
-            msg = "Fallo la descarga o extracción del ODT."
+            msg = "[CONSOLE] Fallo la descarga o extracción del ODT."
             logging.error(f"{Fore.RED}{msg}{Style.RESET_ALL}")
             return False
 
@@ -121,7 +121,10 @@ class OfficeUninstaller:
         # Verifica que setup.exe esté presente antes de intentar la
         # desinstalación
         if not self.setup_path.exists():
-            msg = f"'setup.exe' no encontrado en {sanitized_uninstall_path}"
+            msg = (
+                "[CONSOLE] setup.exe no encontrado en "
+                f"{sanitized_uninstall_path}"
+            )
             logging.error(f"{Fore.RED}{msg}{Style.RESET_ALL}")
             return False
 
@@ -130,7 +133,7 @@ class OfficeUninstaller:
             # desinstalación
             config_path = self._generar_configuracion_remocion()
         except Exception:
-            msg = "Error al generar el archivo de configuración XML."
+            msg = "[CONSOLE] Error al generar el archivo de configuración XML."
             logging.error(f"{Fore.RED}{msg}{Style.RESET_ALL}")
             return False
 
@@ -220,7 +223,7 @@ def run_uninstallers(
         )
         logging.info(f"{Fore.LIGHTCYAN_EX}{'-' * 110}{Style.RESET_ALL}")
         # Determina la familia según el nombre: 2013 o moderno (2016+)
-        familia = "2013" if "2013" in inst.name else "modern"
+        familia = "2013" if "2013" in inst.name else "Modern"
 
         # Si es la primera vez que vemos esta familia, creamos y
         # descargamos ODT
@@ -231,11 +234,11 @@ def run_uninstallers(
 
             logging.info(
                 f"{Fore.GREEN}"
-                f"Preparando ODT para familia '{familia}'…"
+                f"Preparando ODT para familia {familia}…"
                 f"{Style.RESET_ALL}"
             )
             if not manager.download_and_extract(familia):
-                msg = f"Error al preparar ODT para '{familia}'"
+                msg = f"[CONSOLE] Error al preparar ODT para familia {familia}"
                 logging.error(f"{Fore.RED}{msg}{Style.RESET_ALL}")
                 return
 
@@ -249,7 +252,7 @@ def run_uninstallers(
             result = uninstaller.execute()
             logging.info(result)
         except Exception as e:
-            msg = f"Error al desinstalar {inst.name}: {e}"
+            msg = f"[CONSOLE] Error al desinstalar {inst.name}: {e}"
             logging.error(f"{Fore.RED}{msg}{Style.RESET_ALL}")
 
         # Separador visual entre instalaciones

@@ -127,7 +127,7 @@ class OfficeSelectionWindow:
         )
 
         if not odt_manager.download_and_extract(selected_version):
-            msg = "Error. No se pudo descargar y extraer ODT."
+            msg = "[CONSOLE] Error. No se pudo descargar y extraer ODT."
             logging.error(f"{Fore.RED}{msg}{Style.RESET_ALL}")
             return None
 
@@ -233,7 +233,7 @@ class OfficeSelectionWindow:
             self.selected_version = selected_version
             return str(install_subdir)
         except Exception as e:
-            msg = "Error al escribir configuration.xml"
+            msg = "[CONSOLE] Error al escribir configuration.xml"
             logging.exception(f"{Fore.RED}{msg}{Style.RESET_ALL}")
             Messagebox.show_error(
                 f"No se pudo guardar el archivo:\n{e}\n\n"

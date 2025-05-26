@@ -75,6 +75,9 @@ class OfficeManager:
                 if not platform_value:
                     continue
 
+                bitness = (
+                    "64-Bits" if platform_value.lower() == "x64" else "32-Bits"
+                )
                 updates_enabled = (
                     self.registry.get_registry_value(
                         version_key, "UpdatesEnabled"
@@ -89,16 +92,31 @@ class OfficeManager:
                     version_key, "ProductReleaseIds"
                 )
                 product_id_map = {}
-
+                product_list = []
                 if product_ids_raw:
                     product_list = [
-                        p.strip() for p in product_ids_raw.split(",")
+                        p.strip()
+                        for p in product_ids_raw.split(",")
+                        if p.strip()
                     ]
                     for pid in product_list:
+                        # Busca el MediaType exactamente como está en el
+                        # registro
                         media = self.registry.get_registry_value(
                             version_key, f"{pid}.MediaType"
                         )
                         product_id_map[pid] = media if media else ""
+
+                # ProductID: toma siempre el primero de ProductReleaseIds
+                product_id = product_list[0] if product_list else ""
+                media_type = product_id_map.get(product_id, "")
+
+                client_culture = (
+                    self.registry.get_registry_value(
+                        version_key, "ClientCulture"
+                    )
+                    or ""
+                )
 
                 for uninstall_key in uninstall_keys:
                     subkeys = self.registry.get_registry_keys(uninstall_key)
@@ -114,6 +132,9 @@ class OfficeManager:
                         if not self.show_all and not (
                             "Microsoft Office" in display_name
                             or "Microsoft 365" in display_name
+                            or "Office 365" in display_name
+                            or "Office LTSC" in display_name
+                            or "Office ProPlus" in display_name
                             or "Microsoft Project" in display_name
                             or "Microsoft Visio" in display_name
                         ):
@@ -131,26 +152,37 @@ class OfficeManager:
                         )
                         click_to_run = "ClickToRun" in uninstall_string
 
-                        match_product = re.search(
-                            r"productstoremove=([A-Za-z]+)", uninstall_string
-                        )
-                        product_id = (
-                            match_product.group(1) if match_product else ""
+                        # Versión: usa DisplayVersion, si no, VersionToReport
+                        version_final = (
+                            display_version
+                            or self.registry.get_registry_value(
+                                version_key, "VersionToReport"
+                            )
+                            or ""
                         )
 
-                        media_type = product_id_map.get(product_id, "")
+                        # Cultura: intenta extraerla del uninstall_string,
+                        # si no, usa ClientCulture
+                        match_culture = re.search(
+                            r"culture=([a-zA-Z\-]+)", uninstall_string
+                        )
+                        client_culture_final = (
+                            match_culture.group(1)
+                            if match_culture
+                            else client_culture
+                        )
 
                         installations.append(
                             OfficeInstallation(
                                 name=display_name,
-                                version=display_version,
+                                version=version_final,
                                 install_path=install_location,
                                 click_to_run=click_to_run,
-                                product="",
-                                bitness="",
+                                product=product_id,
+                                bitness=bitness,
                                 updates_enabled=updates_enabled,
                                 update_url=update_url,
-                                client_culture="",
+                                client_culture=client_culture_final,
                                 media_type=media_type,
                                 uninstall_string=uninstall_string,
                             )

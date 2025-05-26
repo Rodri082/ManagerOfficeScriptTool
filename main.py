@@ -86,7 +86,7 @@ def prepare_environment() -> Dict[str, Any]:
             "logs_folder": logs_folder,
         }
     except Exception as e:
-        msg = f"Error preparando entorno: {e}"
+        msg = f"[CONSOLE] Error preparando entorno: {e}"
         logging.error(f"{Fore.RED}{msg}{Style.RESET_ALL}")
         return {}
 
@@ -291,12 +291,15 @@ def main() -> None:
 
     except KeyboardInterrupt:
         # Maneja la interrupción manual del usuario (Ctrl+C)
-        msg = "Ejecución interrumpida por el usuario (Ctrl+C)."
+        msg = "[CONSOLE] Ejecución interrumpida por el usuario (Ctrl+C)."
         logging.error(f"{Fore.YELLOW}{msg}{Style.RESET_ALL}")
 
     except Exception as e:
         # Captura y muestra cualquier error inesperado
-        msg = f"Ocurrió un error inesperado en la ejecución principal. {e}"
+        msg = (
+            "[CONSOLE] Ocurrió un error inesperado en la ejecución "
+            f"principal. {e}"
+        )
         logging.exception(f"{Fore.RED}{msg}{Style.RESET_ALL}")
 
     finally:

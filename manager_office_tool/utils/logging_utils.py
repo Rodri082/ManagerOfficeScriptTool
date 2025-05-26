@@ -31,6 +31,20 @@ class InfoAndConsoleMarkFilter(logging.Filter):
         return False
 
 
+class ConsoleFormatter(logging.Formatter):
+    """
+    Formatter que elimina el marcador '[CONSOLE]' solo para la consola.
+    """
+
+    def format(self, record: logging.LogRecord) -> str:
+        msg = record.getMessage()
+        if "[CONSOLE]" in msg:
+            msg = msg.replace("[CONSOLE]", "").strip()
+            record.msg = msg
+            record.args = ()
+        return super().format(record)
+
+
 def init_logging(logs_path: str) -> None:
     """
     Inicializa el sistema de logging:
@@ -59,7 +73,7 @@ def init_logging(logs_path: str) -> None:
     console_handler = logging.StreamHandler()
     console_handler.setLevel(logging.INFO)
     console_handler.addFilter(InfoAndConsoleMarkFilter())
-    console_formatter = logging.Formatter("%(levelname)s - %(message)s")
+    console_formatter = ConsoleFormatter("%(levelname)s - %(message)s")
     console_handler.setFormatter(console_formatter)
 
     logger.handlers.clear()

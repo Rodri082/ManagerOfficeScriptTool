@@ -109,7 +109,7 @@ py -m nuitka ^
     main.py ^
     --standalone ^
     --enable-plugin=tk-inter ^
-    --enable-plugin=pyqt5 ^
+    --enable-plugin=pyside6 ^
     --windows-icon-from-ico=icon.ico ^
     --include-package=manager_office_tool ^
     --include-data-files=./config.yaml=config.yaml ^

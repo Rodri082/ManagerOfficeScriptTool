@@ -3,7 +3,7 @@ odt_fetcher.py
 
 Funciones y clases para obtener información de descarga del
 Office Deployment Tool (ODT) desde la web oficial de Microsoft.
-Utiliza PyQt5 para renderizar páginas dinámicas y requests para
+Utiliza PySide6 para renderizar páginas dinámicas y requests para
 obtener metadatos del archivo ejecutable.
 
 Incluye:
@@ -21,9 +21,9 @@ from typing import Dict, Optional
 from urllib.parse import urlparse
 
 import requests
-from PyQt5.QtCore import QEventLoop, QUrl
-from PyQt5.QtWebEngineWidgets import QWebEnginePage
-from PyQt5.QtWidgets import QApplication
+from PySide6.QtCore import QEventLoop, QUrl
+from PySide6.QtWebEngineCore import QWebEnginePage
+from PySide6.QtWidgets import QApplication
 
 # Cache local para evitar renderizar la misma página varias veces
 _FETCH_CACHE: Dict[str, Dict[str, object]] = {}
@@ -31,7 +31,7 @@ _FETCH_CACHE: Dict[str, Dict[str, object]] = {}
 
 class WebPage(QWebEnginePage):
     """
-    Página web renderizada con PyQt5 para obtener el HTML final
+    Página web renderizada con PySide6 para obtener el HTML final
     de páginas dinámicas.
     """
 
@@ -45,7 +45,9 @@ class WebPage(QWebEnginePage):
         self.loop = QEventLoop()
         self.loop.exec_()
 
-    def javaScriptConsoleMessage(self, level, message, lineNumber, sourceID):
+    def javaScriptConsoleMessage(
+        self, level, message, lineNumber, sourceID, *args
+    ) -> None:
         location = f"{sourceID or 'desconocido'}:{lineNumber}"
         if level == 2:
             logging.error(f"[JS ERROR] {location} - {message}")
@@ -72,7 +74,7 @@ class WebPage(QWebEnginePage):
 
 def get_rendered_html(url: str) -> Optional[str]:
     """
-    Renderiza una página web usando PyQt5 y devuelve el HTML final.
+    Renderiza una página web usando PySide6 y devuelve el HTML final.
     Solo debe usarse con URLs confiables.
     """
     try:
@@ -130,7 +132,7 @@ def parse_head(url: str) -> Dict[str, object]:
 
 def fetch_odt_download_info(download_id: str) -> Optional[Dict[str, object]]:
     """
-    Obtiene la URL, nombre y tamaño del ODT oficial de Microsoft usando PyQt5
+    Obtiene la URL, nombre y tamaño del ODT oficial de Microsoft usando PySide6
     para renderizar la página y extraer la URL del archivo ejecutable.
     Implementa caching para evitar peticiones repetidas.
 

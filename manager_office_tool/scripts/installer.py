@@ -55,13 +55,16 @@ class OfficeInstaller:
         # Verifica que setup.exe y configuration.xml existan antes de intentar
         # la instalación
         if not setup_path.exists():
-            msg = f"No se encontró 'setup.exe': {sanitized_setup_path}"
+            msg = (
+                f"[CONSOLE] No se encontró 'setup.exe': {sanitized_setup_path}"
+            )
             logging.error(f"{Fore.RED}{msg}{Style.RESET_ALL}")
             return
 
         if not config_path.exists():
             msg = (
-                f"No se encontró 'configuration.xml': {sanitized_config_path}"
+                "[CONSOLE] No se encontró 'configuration.xml': "
+                f"{sanitized_config_path}"
             )
             logging.error(f"{Fore.RED}{msg}{Style.RESET_ALL}")
             return
@@ -89,7 +92,7 @@ class OfficeInstaller:
             )
 
         except subprocess.CalledProcessError as e:
-            msg = "La instalación falló."
+            msg = f"[CONSOLE] La instalación falló. {e}"
             logging.error(f"{Fore.RED}{msg}{Style.RESET_ALL}")
             logging.error(
                 "setup.exe falló con código %d\nComando: %s\nStderr:\n%s",
@@ -100,7 +103,7 @@ class OfficeInstaller:
 
         except PermissionError:
             msg = (
-                "Permiso denegado al ejecutar la instalación. "
+                "[CONSOLE] Permiso denegado al ejecutar la instalación. "
                 "Ejecuta como administrador."
             )
             logging.error(f"{Fore.RED}{msg}{Style.RESET_ALL}")
@@ -110,16 +113,21 @@ class OfficeInstaller:
             # (por ejemplo, problemas de acceso a archivos)
             if e.errno == 2:
                 msg = (
-                    "No se encontró el archivo o directorio especificado. "
+                    "[CONSOLE] No se encontró el archivo o "
+                    "directorio especificado. "
                     f"Verifica la ruta: {sanitized_setup_path}"
                 )
             elif e.errno == 13:
                 msg = (
-                    "Permiso denegado al acceder a un archivo o directorio. "
+                    "[CONSOLE] Permiso denegado al acceder a un "
+                    "archivo o directorio. "
                     f"Verifica los permisos: {sanitized_setup_path}"
                 )
             else:
-                msg = f"Error del sistema al iniciar la instalación {e}"
+                msg = (
+                    "[CONSOLE] Error del sistema al iniciar la instalación "
+                    f"{e}"
+                )
             logging.error(f"{Fore.RED}{msg}{Style.RESET_ALL}")
 
         except Exception as e:

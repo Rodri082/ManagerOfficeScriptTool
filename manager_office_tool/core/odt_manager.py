@@ -70,7 +70,7 @@ class ODTManager:
                     size = 0
                 return url, name, size
         except Exception as e:
-            msg = f"Error al obtener info de descarga : {e}"
+            msg = f"[CONSOLE] Error al obtener info de descarga : {e}"
             logging.exception(f"{Fore.RED}{msg}{Style.RESET_ALL}")
         return None
 
@@ -124,7 +124,7 @@ class ODTManager:
                 caso contrario.
         """
         if not self.office_dir:
-            msg = "Directorio de instalación no definido."
+            msg = "[CONSOLE] Directorio de instalación no definido."
             logging.error(f"{Fore.RED}{msg}{Style.RESET_ALL}")
             return False
         logging.debug(
@@ -133,7 +133,7 @@ class ODTManager:
         )
         url = self.get_download_url(version_identifier)
         if not url:
-            msg = "No se pudo obtener la URL de descarga."
+            msg = "[CONSOLE] No se pudo obtener la URL de descarga."
             logging.error(f"{Fore.RED}{msg}{Style.RESET_ALL}")
             return False
 
@@ -228,7 +228,10 @@ class ODTManager:
                         time.sleep(delay)
                         continue
                     else:
-                        msg = f"Descarga fallida tras {max_retries} intentos."
+                        msg = (
+                            "[CONSOLE] Descarga fallida tras "
+                            f"{max_retries} intentos."
+                        )
                         logging.error(f"{Fore.RED}{msg}{Style.RESET_ALL}")
                         return False
 
@@ -254,10 +257,13 @@ class ODTManager:
                     return True
                 except subprocess.CalledProcessError as e:
                     logging.error(f"Error al ejecutar el ODT:\n{e.stderr}")
-                    msg = "Error al ejecutar el ODT."
+                    msg = "[CONSOLE] Error al ejecutar el ODT."
                     logging.error(f"{Fore.RED}{msg}{Style.RESET_ALL}")
                 except PermissionError:
-                    msg = "Permiso denegado al intentar escribir en el disco."
+                    msg = (
+                        "[CONSOLE] Permiso denegado al intentar "
+                        "escribir en el disco."
+                    )
                     logging.error(f"{Fore.RED}{msg}{Style.RESET_ALL}")
                 except OSError as e:
                     logging.error(f"Error del sistema de archivos: {e}")
@@ -271,7 +277,7 @@ class ODTManager:
                     tmp_path.unlink()
                 except OSError:
                     msg = (
-                        "No se pudo eliminar el archivo temporal: "
+                        "[CONSOLE] No se pudo eliminar el archivo temporal: "
                         f"{sanitized_tmp_path}"
                     )
                     logging.warning(f"{Fore.YELLOW}{msg}{Style.RESET_ALL}")

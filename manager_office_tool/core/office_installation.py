@@ -74,14 +74,8 @@ class OfficeInstallation:
         else:
             self.bitness = bitness
 
-        # Extrae el producto desde la cadena de desinstalación si está presente
-        match_product = re.search(
-            r"productstoremove=([A-Za-z]+)", uninstall_string
-        )
-        if match_product:
-            self.product = match_product.group(1)
-        else:
-            self.product = product
+        # Usa siempre el product pasado por el constructor
+        self.product = product
 
     def __repr__(self) -> str:
         """

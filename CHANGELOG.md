@@ -3,7 +3,7 @@
 Historial de cambios del proyecto **ManagerOfficeScriptTool**
 
 ---
-## [5.0] - 2025-05-19
+## [5.0] - 2025-05-26
 ### 🚀 Modularización total y refactor profesional
 - El proyecto se reestructura completamente: de un solo archivo (`ManagerOfficeScriptTool.py`) a un **paquete modularizado**.
 - Separación clara de responsabilidades en submódulos:
@@ -25,8 +25,14 @@ Historial de cambios del proyecto **ManagerOfficeScriptTool**
 - Cumplimiento estricto de PEP8: líneas ≤ 79 caracteres, uso de paréntesis en prints y logs largos.
 - Uso de Black, isort, flake8 y mypy recomendado y compatible.
 
-### 🌐 Descarga de ODT: de Scrapy a PyQt5
-- **Eliminado Scrapy**: ahora se utiliza **PyQt5** para renderizar la página oficial de Microsoft y extraer la URL, nombre y tamaño del ODT.
+### 🏷️ Detección y visualización mejorada de instalaciones de Office
+- Lógica de detección de instalaciones actualizada: ahora el `ProductID` y el `MediaType` se obtienen siempre desde el valor `ProductReleaseIds` del registro, garantizando compatibilidad con Office 2013, 2016/2019/2021/2024 y 365.
+- Eliminada la dependencia de patrones en el `UninstallString` para identificar productos, evitando errores y detecciones incorrectas.
+- Visualización más precisa y robusta de los datos de cada instalación en consola y logs.
+- Refactor en `OfficeInstallation`: el atributo `product` ahora siempre refleja el valor real del registro, sin sobrescritura accidental.
+
+### 🌐 Descarga de ODT: de Scrapy a PySide6
+- **Eliminado Scrapy**: ahora se utiliza **PySide6** para renderizar la página oficial de Microsoft y extraer la URL, nombre y tamaño del ODT.
 - Eliminadas todas las dependencias y referencias a Scrapy.
 - Mayor robustez ante cambios en la web de Microsoft.
 
@@ -38,7 +44,7 @@ Historial de cambios del proyecto **ManagerOfficeScriptTool**
 - Estructura profesional, fácil de mantener, escalar y compartir en GitHub.
 
 ### 📦 Listo para producción y colaboración
-- README.md actualizado: refleja la nueva estructura, dependencias y créditos (PyQt5 en lugar de Scrapy).
+- README.md actualizado: refleja la nueva estructura, dependencias y créditos (PySide6 en lugar de Scrapy).
 - Recomendaciones para agregar `requirements.txt`, `.gitignore` y carpeta `tests/` para futuras mejoras.
 - Compilación recomendada con Nuitka para ejecutable optimizado y seguro.
 

@@ -28,5 +28,5 @@ def ask_yes_no(message: str) -> bool:
         elif respuesta in ("n", "no"):
             return False
         else:
-            msg = "Respuesta no válida. Por favor ingresa 'S' o 'N'."
+            msg = "[CONSOLE] Respuesta no válida. Por favor ingresa 'S' o 'N'."
             logging.warning(f"{Fore.YELLOW}{msg}{Style.RESET_ALL}")

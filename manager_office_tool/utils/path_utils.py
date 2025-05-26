@@ -109,14 +109,17 @@ def clean_folders(folders: List[Path]) -> Tuple[List[str], List[str]]:
                     f"La ruta no es una carpeta o no existe: {sanitized_path}"
                 )
         except PermissionError:
-            msg = f"Permiso denegado al eliminar la carpeta: {sanitized_path}"
+            msg = (
+                "[CONSOLE] Permiso denegado al eliminar la carpeta: "
+                f"{sanitized_path}"
+            )
             logging.error(f"{Fore.RED}{msg}{Style.RESET_ALL}")
             errores.append(msg)
         except FileNotFoundError:
-            msg = f"La carpeta ya no existe: {sanitized_path}"
+            msg = f"[CONSOLE] La carpeta ya no existe: {sanitized_path}"
             logging.warning(f"{Fore.YELLOW}{msg}{Style.RESET_ALL}")
         except OSError as e:
-            msg = f"Error eliminando {sanitized_path}: {e}"
+            msg = f"[CONSOLE] Error eliminando {sanitized_path}: {e}"
             logging.error(f"{Fore.RED}{msg}{Style.RESET_ALL}")
             errores.append(msg)
     return eliminadas, errores
