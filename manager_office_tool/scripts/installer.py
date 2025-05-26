@@ -10,29 +10,33 @@ import logging
 import subprocess
 from pathlib import Path
 
-from colorama import Fore
+from colorama import Fore, Style
 from manager_office_tool.utils import safe_log_path
 
 
 class OfficeInstaller:
     """
-    Encargado de ejecutar el proceso de instalación de Microsoft Office
-    utilizando el archivo setup.exe y configuration.xml generados previamente.
+    Ejecuta el proceso de instalación de Microsoft Office utilizando setup.exe
+    y configuration.xml.
 
     Args:
-        office_install_dir (str): Ruta donde se encuentra el setup.exe y el
-            archivo de configuración XML.
+        office_install_dir (str): Ruta donde se encuentra el setup.exe y
+            el archivo de configuración XML.
+        selected_version (str): Versión de Office a instalar
+            (solo para mostrar en logs).
     """
 
-    def __init__(self, office_install_dir: str) -> None:
+    def __init__(self, office_install_dir: str, selected_version: str) -> None:
         """
         Inicializa la instancia con la ruta de instalación de Office.
 
         Args:
             office_install_dir (str): Carpeta que contiene los archivos
                 necesarios para instalar Office.
+            selected_version (str): Versión de Office a instalar.
         """
         self.office_install_dir = office_install_dir
+        self.selected_version = selected_version
 
     def run_setup_commands(self) -> None:
         """
@@ -51,30 +55,25 @@ class OfficeInstaller:
         # Verifica que setup.exe y configuration.xml existan antes de intentar
         # la instalación
         if not setup_path.exists():
-            logging.error(
-                "No se encontró 'setup.exe': %s", sanitized_setup_path
-            )
-            print(Fore.RED + "Error: 'setup.exe' no está disponible.")
+            msg = f"No se encontró 'setup.exe': {sanitized_setup_path}"
+            logging.error(f"{Fore.RED}{msg}{Style.RESET_ALL}")
             return
 
         if not config_path.exists():
-            logging.error(
-                "No se encontró 'configuration.xml': %s", sanitized_config_path
+            msg = (
+                f"No se encontró 'configuration.xml': {sanitized_config_path}"
             )
-            print(Fore.RED + "Error: 'configuration.xml' no está disponible.")
+            logging.error(f"{Fore.RED}{msg}{Style.RESET_ALL}")
             return
 
         command = [str(setup_path), "/configure", str(config_path)]
 
-        # Ejecuta el instalador en modo silencioso y captura la salida
-        # para el log
         try:
-            print(
-                Fore.YELLOW
-                + (
-                    "Instalando Microsoft Office. "
-                    "Por favor, no cierre esta ventana..."
-                )
+            logging.info(
+                f"{Fore.YELLOW}"
+                f"Instalando Microsoft {self.selected_version}. "
+                "Por favor, no cierre esta ventana..."
+                f"{Style.RESET_ALL}"
             )
 
             subprocess.run(
@@ -85,12 +84,13 @@ class OfficeInstaller:
                 check=True,
             )
 
-            print(Fore.GREEN + "Instalación completada exitosamente.")
-            logging.info("Instalación de Office finalizada correctamente.")
+            logging.info(
+                f"{Fore.GREEN}Instalación completada.{Style.RESET_ALL}"
+            )
 
         except subprocess.CalledProcessError as e:
-            # Maneja errores específicos del proceso de instalación
-            print(Fore.RED + "La instalación falló.")
+            msg = "La instalación falló."
+            logging.error(f"{Fore.RED}{msg}{Style.RESET_ALL}")
             logging.error(
                 "setup.exe falló con código %d\nComando: %s\nStderr:\n%s",
                 e.returncode,
@@ -99,28 +99,28 @@ class OfficeInstaller:
             )
 
         except PermissionError:
-            # Informa si el usuario no tiene permisos suficientes
-            logging.error("Permiso denegado al ejecutar setup.exe.")
-            print(
-                Fore.RED
-                + (
-                    "Permiso denegado al ejecutar la instalación. "
-                    "Ejecuta el script como administrador."
-                )
+            msg = (
+                "Permiso denegado al ejecutar la instalación. "
+                "Ejecuta como administrador."
             )
+            logging.error(f"{Fore.RED}{msg}{Style.RESET_ALL}")
 
         except OSError as e:
             # Maneja errores del sistema operativo
             # (por ejemplo, problemas de acceso a archivos)
-            logging.error(
-                f"Error del sistema operativo al ejecutar la instalación: {e}"
-            )
-            print(Fore.RED + "Error del sistema al iniciar la instalación")
+            if e.errno == 2:
+                msg = (
+                    "No se encontró el archivo o directorio especificado. "
+                    f"Verifica la ruta: {sanitized_setup_path}"
+                )
+            elif e.errno == 13:
+                msg = (
+                    "Permiso denegado al acceder a un archivo o directorio. "
+                    f"Verifica los permisos: {sanitized_setup_path}"
+                )
+            else:
+                msg = f"Error del sistema al iniciar la instalación {e}"
+            logging.error(f"{Fore.RED}{msg}{Style.RESET_ALL}")
 
         except Exception as e:
-            # Captura cualquier otro error inesperado
-            logging.exception(f"Error inesperado durante la instalación. {e}")
-            print(
-                Fore.RED
-                + ("Ocurrió un error inesperado durante la instalación.")
-            )
+            logging.error("Error inesperado durante la instalación: %s", e)

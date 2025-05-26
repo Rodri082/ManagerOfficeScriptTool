@@ -1,3 +1,10 @@
+"""
+Subpaquete utils de ManagerOfficeScriptTool.
+
+Contiene utilidades generales para consola, GUI, logging y manejo seguro de
+rutas y carpetas temporales.
+"""
+
 from .console_utils import ask_yes_no
 from .gui_utils import center_window, clean_temp_folders_ui
 from .logging_utils import init_logging

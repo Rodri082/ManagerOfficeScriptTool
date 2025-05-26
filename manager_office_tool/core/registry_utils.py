@@ -2,8 +2,7 @@
 registry_utils.py
 
 Módulo para leer claves y valores del registro de Windows de forma
-segura y eficiente.
-Incluye manejo de errores y caché para optimizar el acceso.
+segura y eficiente. Incluye manejo de errores y caché para optimizar el acceso.
 """
 
 import logging
@@ -37,8 +36,6 @@ class RegistryReader:
             List[str]: Subclaves encontradas o lista vacía si hay error.
         """
         root_key = winreg.HKEY_LOCAL_MACHINE
-        # Determina el acceso según la arquitectura del sistema
-        # (32 o 64 bits). Se usa KEY_WOW64_64KEY para sistemas de 64 bits.
         access_flag = winreg.KEY_READ | (
             winreg.KEY_WOW64_64KEY if platform.machine().endswith("64") else 0
         )
@@ -85,7 +82,6 @@ class RegistryReader:
             str: Valor encontrado o cadena vacía.
         """
         cache_key = (key, value_name)
-        # Usa caché para evitar lecturas repetidas de la misma clave y valor
         if cache_key in self._cache:
             return self._cache[cache_key]
 
@@ -96,8 +92,6 @@ class RegistryReader:
 
         sanitized_key = safe_log_registry_key(key)
 
-        # Intenta abrir la clave y leer el valor de forma segura,
-        # manejando errores comunes del registro
         try:
             with winreg.OpenKey(root_key, key, 0, access_flag) as key_handle:
                 try:

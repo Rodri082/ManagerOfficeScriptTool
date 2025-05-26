@@ -1,10 +1,48 @@
 @echo off
 setlocal enabledelayedexpansion
 
+REM ============================================================================
+REM ManagerOfficeScriptTool - Script de compilación con Nuitka
+REM
+REM USO:
+REM   Ejecuta este archivo desde el directorio raíz del proyecto.
+REM   ¡IMPORTANTE! Ejecuta este script como administrador.
+REM   Haz clic derecho sobre este archivo y selecciona "Ejecutar como administrador".
+REM
+REM REQUISITOS:
+REM     - Python 3.10+ instalado y en PATH
+REM     - MSVC (cl.exe) disponible en PATH (Visual Studio Build Tools)
+REM     - Nuitka instalado (el script intentará instalarlo si no está)
+REM     - config.yaml y icon.ico presentes en el directorio raíz
+REM
+REM Este script compila el proyecto en modo standalone usando Nuitka,
+REM limpia compilaciones previas y verifica la creación del ejecutable.
+REM ============================================================================
+
 cd /d "%~dp0"
 
 echo Current dir: %cd%
 echo.
+
+REM --- Comprobación de permisos de administrador ---
+net session >nul 2>&1
+if errorlevel 1 (
+    echo [ERROR] Debes ejecutar este script como administrador.
+    echo Haz clic derecho sobre este archivo y selecciona "Ejecutar como administrador".
+    pause
+    exit /b 1
+)
+
+:: --- Comprobación de permisos de escritura en el directorio actual ---
+echo Verificando permisos de escritura en el directorio de trabajo...
+set "PERM_TEST_FILE=%cd%\__perm_test__.tmp"
+echo test > "%PERM_TEST_FILE%" 2>nul
+if not exist "%PERM_TEST_FILE%" (
+    echo [ERROR] No tienes permisos de escritura en este directorio: %cd%
+    pause
+    exit /b 1
+)
+del "%PERM_TEST_FILE%"
 
 :: --- Inicio de lógica principal ---
 
@@ -52,28 +90,18 @@ if errorlevel 1 (
 )
 
 :: Verificar si Nuitka está disponible
-where nuitka >nul 2>&1 || (
-    py -m nuitka --version >nul 2>&1 || (
-        echo [ERROR] No se encontró Nuitka ni como comando ni como módulo.
+where nuitka >nul 2>&1
+if errorlevel 1 (
+    echo Nuitka no está instalado. Intentando instalarlo...
+    py -m pip install nuitka
+    if errorlevel 1 (
+        echo [ERROR] No se pudo instalar Nuitka. Asegúrate de tener permisos y una conexión a Internet.
         pause
         exit /b 1
+    ) else (
+        echo [OK] Nuitka instalado correctamente.
     )
 )
-
-:: Ejecutar Python inline y guardar salida en variable sin usar for /f
-set "MIME_TYPES_PATH="
-for /f "usebackq delims=" %%F in (`py -c "import scrapy;from pathlib import Path;p=Path(scrapy.__file__).parent/'mime.types';print(p if p.exists() else '')"`) do (
-    set "MIME_TYPES_PATH=%%F"
-)
-
-if "!MIME_TYPES_PATH!"=="" (
-    echo [ERROR] No se encontró el archivo mime.types de Scrapy.
-    echo Intenta reinstalar Scrapy con: pip install --force-reinstall scrapy
-    pause
-    exit /b 1
-)
-
-echo [OK] Ruta mime.types detectada.
 
 echo Iniciando compilacion con Nuitka...
 
@@ -81,10 +109,10 @@ py -m nuitka ^
     main.py ^
     --standalone ^
     --enable-plugin=tk-inter ^
+    --enable-plugin=pyqt5 ^
     --windows-icon-from-ico=icon.ico ^
-    --include-package=scrapy ^
-    --include-data-file=./config.yaml=config.yaml ^
-    --include-data-file="!MIME_TYPES_PATH!"=scrapy/mime.types ^
+    --include-package=manager_office_tool ^
+    --include-data-files=./config.yaml=config.yaml ^
     --nofollow-import-to=unittest,doctest,types_PyYAML,types_requests ^
     --company-name="Rodri082" ^
     --product-name="ManagerOfficeScriptTool" ^
@@ -95,10 +123,12 @@ py -m nuitka ^
     --windows-uac-admin ^
     --output-dir=build ^
     --output-filename=ManagerOfficeScriptTool.exe ^
-    --msvc=latest
+    --msvc=latest ^
+    --lto=yes ^
+    --report=build/compilation-report.xml
 
 if errorlevel 1 (
-    echo [ERROR] La compilacion fallo.
+    echo [ERROR] La compilacion fallo. Consulta build\compilation-report.xml para mas detalles.
     pause
     exit /b 1
 )

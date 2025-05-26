@@ -1,9 +1,19 @@
+"""
+path_utils.py
+
+Utilidades para manejo seguro de rutas, carpetas temporales y sanitización de
+logs. Incluye funciones para obtener rutas de datos, crear carpetas temporales,
+asegurar subcarpetas, y limpiar rutas sensibles antes de mostrarlas en logs.
+"""
+
 import logging
 import shutil
 import sys
 import tempfile
 from pathlib import Path
 from typing import List, Tuple, Union
+
+from colorama import Fore, Style
 
 
 def get_data_path(filename: str) -> Path:
@@ -25,10 +35,23 @@ def get_data_path(filename: str) -> Path:
 
 
 def get_temp_dir(prefix="ManagerOfficeScriptTool_") -> Path:
+    """
+    Crea y retorna un directorio temporal único para la sesión.
+    """
     return Path(tempfile.mkdtemp(prefix=prefix))
 
 
 def ensure_subfolder(parent: Path, name: str) -> Path:
+    """
+    Garantiza la existencia de una subcarpeta dentro de un directorio dado.
+
+    Args:
+        parent (Path): Carpeta padre.
+        name (str): Nombre de la subcarpeta.
+
+    Returns:
+        Path: Ruta a la subcarpeta creada o existente.
+    """
     folder = parent / name
     folder.mkdir(parents=True, exist_ok=True)
     return folder
@@ -61,6 +84,12 @@ def clean_folders(folders: List[Path]) -> Tuple[List[str], List[str]]:
     Intenta eliminar las carpetas indicadas.
     Devuelve dos listas: eliminadas y errores.
     Además, registra logs para cada acción relevante.
+
+    Args:
+        folders (List[Path]): Lista de carpetas a eliminar.
+
+    Returns:
+        Tuple[List[str], List[str]]: (eliminadas, errores)
     """
     eliminadas, errores = [], []
     for folder_path in folders:
@@ -70,21 +99,24 @@ def clean_folders(folders: List[Path]) -> Tuple[List[str], List[str]]:
             if folder_path.is_dir():
                 shutil.rmtree(folder_path)
                 eliminadas.append(str(folder_path))
-                logging.info(f"Carpeta eliminada: {sanitized_path}")
+                logging.info(
+                    f"{Fore.GREEN}"
+                    f"Carpeta eliminada: {sanitized_path}"
+                    f"{Style.RESET_ALL}"
+                )
             else:
                 logging.debug(
                     f"La ruta no es una carpeta o no existe: {sanitized_path}"
                 )
         except PermissionError:
-            error_msg = (
-                f"Permiso denegado al eliminar la carpeta: {sanitized_path}"
-            )
-            logging.error(error_msg)
-            errores.append(error_msg)
+            msg = f"Permiso denegado al eliminar la carpeta: {sanitized_path}"
+            logging.error(f"{Fore.RED}{msg}{Style.RESET_ALL}")
+            errores.append(msg)
         except FileNotFoundError:
-            logging.warning(f"La carpeta ya no existe: {sanitized_path}")
+            msg = f"La carpeta ya no existe: {sanitized_path}"
+            logging.warning(f"{Fore.YELLOW}{msg}{Style.RESET_ALL}")
         except OSError as e:
-            error_msg = f"Error eliminando {sanitized_path}: {e}"
-            logging.error(error_msg)
-            errores.append(error_msg)
+            msg = f"Error eliminando {sanitized_path}: {e}"
+            logging.error(f"{Fore.RED}{msg}{Style.RESET_ALL}")
+            errores.append(msg)
     return eliminadas, errores

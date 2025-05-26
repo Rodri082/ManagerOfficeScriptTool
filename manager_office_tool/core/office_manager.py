@@ -6,11 +6,12 @@ en el sistema, consultando el registro de Windows y utilizando la clase
 OfficeInstallation para representar cada hallazgo.
 """
 
+import logging
 import re
 from pathlib import Path
 from typing import List
 
-from colorama import Fore
+from colorama import Fore, Style
 
 from .office_installation import OfficeInstallation
 from .registry_utils import RegistryReader
@@ -22,10 +23,10 @@ class OfficeManager:
     Microsoft Office.
 
     Args:
-        show_all (bool): Si es True, mostrará todas las instalaciones
+        show_all (bool): Si es True, muestra todas las instalaciones
                             encontradas.
-                         Si es False, solo mostrará las instalaciones de
-                            Microsoft Office o 365.
+                         Si es False, solo muestra instalaciones de Office,
+                            365, Project o Visio.
     """
 
     def __init__(self, show_all: bool = False) -> None:
@@ -54,8 +55,6 @@ class OfficeManager:
         found_names: set[str] = set()
         installations: List[OfficeInstallation] = []
 
-        # Recorre las claves de registro para encontrar instalaciones de Office
-        # y sus respectivas configuraciones.
         for office_key in office_keys:
             for version in versions:
                 if version == "ClickToRun":
@@ -111,8 +110,7 @@ class OfficeManager:
                         if not display_name or display_name in found_names:
                             continue
 
-                        # Filtra las instalaciones de Microsoft Office
-                        # según el nombre mostrado en el registro.
+                        # Filtra las instalaciones relevantes según el nombre
                         if not self.show_all and not (
                             "Microsoft Office" in display_name
                             or "Microsoft 365" in display_name
@@ -142,8 +140,6 @@ class OfficeManager:
 
                         media_type = product_id_map.get(product_id, "")
 
-                        # Crea el objeto OfficeInstallation
-                        # y lo agrega a la lista de instalaciones.
                         installations.append(
                             OfficeInstallation(
                                 name=display_name,
@@ -166,34 +162,34 @@ class OfficeManager:
     def display_installations(self) -> None:
         """
         Imprime por consola las instalaciones de Office encontradas con
-        formato visual.
+        formato visual y numeradas.
         """
         installations = self._get_installations()
         if not installations:
-            print(
-                Fore.YELLOW
-                + ("No se encontraron instalaciones de Microsoft Office.")
+            logging.info(
+                f"{Fore.YELLOW}"
+                "No se encontraron instalaciones de Microsoft Office."
+                f"{Style.RESET_ALL}"
             )
             return
-
-        print(Fore.CYAN + "=" * 110)
-        print(
-            Fore.GREEN
-            + (
-                "Se encontraron las siguientes instalaciones de "
-                "Microsoft Office:"
-            )
+        logging.info(f"{Fore.CYAN}{'-' * 80}{Style.RESET_ALL}")
+        logging.info(
+            f"{Fore.LIGHTWHITE_EX}"
+            "Se encontraron las siguientes instalaciones de Microsoft Office: "
+            f"{Style.RESET_ALL}"
         )
-        print(Fore.CYAN + "=" * 110)
+        logging.info(Fore.CYAN + "-" * 80 + Style.RESET_ALL)
 
-        # Muestra información detallada de cada instalación
-        # en un formato legible y estructurado.
-        for install in installations:
+        for idx, install in enumerate(installations, start=1):
+            logging.info(
+                f"{Fore.MAGENTA}"
+                f"[{idx}] "
+                f"{install.name} - "
+                f"{install.version} - "
+                f"{install.bitness}"
+                f"{Style.RESET_ALL}"
+            )
             office_info = {
-                "DisplayName": install.name,
-                "Version": install.version,
-                "Language": install.client_culture,
-                "Architecture": install.bitness,
                 "IsClickToRun": install.click_to_run,
                 "InstallPath": install.install_path,
                 "ProductID": install.product,
@@ -202,8 +198,11 @@ class OfficeManager:
                 "MediaType": install.media_type,
             }
             for key, value in office_info.items():
-                print(Fore.LIGHTWHITE_EX + f"{key:<20}: {str(value)}")
-            print(Fore.CYAN + "=" * 110)
+                logging.info(
+                    f"{Fore.LIGHTWHITE_EX}{key:<18}: "
+                    f"{str(value)}{Style.RESET_ALL}"
+                )
+            logging.info(f"{Fore.CYAN}{'-' * 80}{Style.RESET_ALL}")
 
     def get_installations(self) -> List[OfficeInstallation]:
         """

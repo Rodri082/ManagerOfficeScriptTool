@@ -2,9 +2,8 @@
 office_installation.py
 
 Define la clase OfficeInstallation, que representa una instalación detectada
-de Microsoft Office en el sistema.
-Incluye lógica para extraer información relevante desde el comando de
-desinstalación.
+de Microsoft Office en el sistema. Incluye lógica para extraer información
+relevante desde el comando de desinstalación.
 """
 
 import re
@@ -14,20 +13,19 @@ class OfficeInstallation:
     """
     Representa una instalación de Microsoft Office detectada en el sistema.
 
-    Atributos:
-        name (str): Nombre del producto Office (p.ej., "Microsoft Office 365").
-        version (str): Versión instalada (p.ej., "16.0.12345.10000").
-        install_path (str): Ruta de instalación en el sistema.
-        click_to_run (bool): Indica si la instalación es del tipo Click-to-Run.
-        product (str): ID del producto asociado a la instalación.
-        bitness (str): Arquitectura (p.ej., "32-Bits" o "64-Bits").
-        updates_enabled (bool): Indica si las actualizaciones están
-            habilitadas.
+    Atributos principales:
+        name (str): Nombre del producto Office.
+        version (str): Versión instalada.
+        install_path (str): Ruta de instalación.
+        click_to_run (bool): Si es instalación Click-to-Run.
+        product (str): ID del producto.
+        bitness (str): Arquitectura ("32-Bits" o "64-Bits").
+        updates_enabled (bool): Si las actualizaciones están habilitadas.
         update_url (str): URL del canal de actualizaciones.
         client_culture (str): Idioma de la instalación.
         version_to_report (str): Versión informada del cliente.
         media_type (str): Tipo de medio de instalación.
-        uninstall_string (str): Comando de desinstalación desde el registro.
+        uninstall_string (str): Comando de desinstalación.
     """
 
     def __init__(

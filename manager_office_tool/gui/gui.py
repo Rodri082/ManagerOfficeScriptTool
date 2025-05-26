@@ -13,7 +13,7 @@ from pathlib import Path
 
 import ttkbootstrap as tb
 import yaml
-from colorama import Fore
+from colorama import Fore, Style
 from manager_office_tool.core import ODTManager
 from manager_office_tool.utils import (
     center_window,
@@ -25,26 +25,17 @@ from ttkbootstrap.dialogs import Messagebox
 
 class OfficeSelectionWindow:
     """
-    Ventana gráfica para seleccionar opciones de instalación de Microsoft
-    Office.
+    Ventana gráfica para seleccionar opciones de instalación de
+    Microsoft Office.
 
-    Permite al usuario escoger la versión, arquitectura, idioma, y
-    aplicaciones a instalar, generando luego un archivo de configuración
-    XML compatible con Office Deployment Tool (ODT).
+    Permite al usuario escoger la versión, arquitectura, idioma y aplicaciones
+    a instalar, generando luego un archivo de configuración XML compatible con
+    Office Deployment Tool (ODT).
     """
 
     def __init__(self, office_install_dir: Path):
         """
         Inicializa la interfaz gráfica del selector de versiones de Office.
-
-        Atributos principales:
-            all_apps (dict): Aplicaciones disponibles por versión.
-            versiones (dict): Configuración de cada versión de Office.
-            languages (dict): Idiomas disponibles.
-            root (tb.Window): Ventana principal de la GUI.
-            app_vars (dict): Variables de estado para los checkboxes de apps.
-            app_checkbuttons (list): Lista de checkbuttons de apps.
-            cancelled (bool): Indica si el usuario canceló la instalación.
         """
         self.office_install_dir = office_install_dir
 
@@ -59,6 +50,7 @@ class OfficeSelectionWindow:
         self.app_vars: dict[str, tb.BooleanVar] = {}
         self.app_checkbuttons: list[tb.Checkbutton] = []
         self.cancelled: bool = False
+        self.install_subdir_path: Path | None = None
 
     def on_closing(self) -> None:
         """
@@ -115,25 +107,28 @@ class OfficeSelectionWindow:
         selected_apps: list[str],
     ) -> str | None:
         """
-        Genera el archivo configuration.xml con las opciones seleccionadas
-        por el usuario.
-
-        Args:
-            selected_version (str): Versión de Office seleccionada.
-            bits (str): Arquitectura seleccionada ("32" o "64").
-            selected_language_name (str): Nombre del idioma seleccionado.
-            remove_msi (bool): Si se debe eliminar versiones antiguas.
-            selected_apps (list[str]): Lista de apps seleccionadas.
+        Genera el archivo configuration.xml con las opciones seleccionadas por
+        el usuario.
 
         Returns:
             str | None: Ruta al archivo generado o None si hubo error.
         """
-
         self.root.destroy()
+        familia = "2013" if "2013" in selected_version else "modern"
+        install_subdir = Path(self.office_install_dir) / f"OfficeODT_{familia}"
+        install_subdir.mkdir(parents=True, exist_ok=True)
 
-        odt_manager = ODTManager(str(self.office_install_dir))
+        odt_manager = ODTManager(str(install_subdir))
+        logging.info(
+            f"{Fore.CYAN}"
+            "Usando carpeta de instalación: "
+            f"{safe_log_path(install_subdir)}"
+            f"{Style.RESET_ALL}"
+        )
+
         if not odt_manager.download_and_extract(selected_version):
-            print("Error. No se pudo descargar y extraer ODT.")
+            msg = "Error. No se pudo descargar y extraer ODT."
+            logging.error(f"{Fore.RED}{msg}{Style.RESET_ALL}")
             return None
 
         if selected_version not in self.versiones:
@@ -180,8 +175,8 @@ class OfficeSelectionWindow:
 
         available_apps = set(self.all_apps.get(selected_version, []))
         selected_apps_set = set(selected_apps)
-        # Excluye las aplicaciones no seleccionadas usando
-        # el bloque <ExcludeApp>
+        # Excluye las aplicaciones no seleccionadas usando el
+        # bloque <ExcludeApp>
         excluded_apps = available_apps - selected_apps_set
         exclude_apps_block = "\n".join(
             f'      <ExcludeApp ID="{app}" />' for app in sorted(excluded_apps)
@@ -210,7 +205,6 @@ class OfficeSelectionWindow:
                     f'      <Language ID="{language_id}" />\n'
                     f"    </Product>"
                 )
-
             product_blocks.append(product_block)
 
         remove_msi_tag = "\n  <RemoveMSI />" if remove_msi else ""
@@ -228,19 +222,19 @@ class OfficeSelectionWindow:
   <Display Level="Full" AcceptEULA="TRUE" />
 </Configuration>"""  # noqa: E501
 
-        config_file_path = Path(self.office_install_dir) / "configuration.xml"
+        config_file_path = install_subdir / "configuration.xml"
         try:
             config_file_path.write_text(config, encoding="utf-8")
-            print(
-                Fore.GREEN
-                + (
-                    "Archivo de configuración generado exitosamente en: "
-                    f"{safe_log_path(config_file_path)}"
-                )
+            logging.debug(
+                "[*] Archivo de configuración generado exitosamente en: "
+                f"{safe_log_path(config_file_path)}"
             )
-            return str(config_file_path)
+            self.install_subdir_path = install_subdir
+            self.selected_version = selected_version
+            return str(install_subdir)
         except Exception as e:
-            logging.exception("Error al escribir configuration.xml")
+            msg = "Error al escribir configuration.xml"
+            logging.exception(f"{Fore.RED}{msg}{Style.RESET_ALL}")
             Messagebox.show_error(
                 f"No se pudo guardar el archivo:\n{e}\n\n"
                 "Verifica que tienes permisos de escritura "
@@ -265,7 +259,6 @@ class OfficeSelectionWindow:
 
         if self.visio_var.get():
             selected_apps.append("Visio")
-
         if self.project_var.get():
             selected_apps.append("Project")
 
@@ -286,8 +279,7 @@ class OfficeSelectionWindow:
             return
         if selected_version not in self.versiones:
             Messagebox.show_error(
-                "No se encontró la configuración para "
-                "la versión seleccionada.",
+                "No se encontró la configuración de la versión seleccionada.",
                 title="Error",
                 parent=self.root,
             )
@@ -301,10 +293,14 @@ class OfficeSelectionWindow:
             selected_apps,
         )
 
-    def show(self) -> bool:
+    def show(self) -> tuple[str | None, str | None]:
         """
-        Muestra la ventana de selección de Office con todos los componentes
-        gráficos.
+        Muestra la ventana de selección de Office con todos los
+        componentes gráficos.
+
+        Returns:
+            tuple str | None, str | None: Ruta de instalación y versión
+            seleccionada, o (None, None) si se cancela.
         """
         self.root.title("Instalador de Microsoft Office")
         self.root.attributes("-topmost", True)
@@ -395,4 +391,11 @@ class OfficeSelectionWindow:
         )
         self.root.resizable(False, False)
         self.root.mainloop()
-        return self.cancelled
+        return (
+            (
+                str(self.install_subdir_path),
+                getattr(self, "selected_version", None),
+            )
+            if not self.cancelled
+            else (None, None)
+        )

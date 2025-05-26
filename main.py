@@ -34,13 +34,26 @@ El flujo principal es:
    mediante GUI.
 4. Gestionar errores y limpiar archivos temporales al finalizar.
 
+Notas de seguridad:
+- Las rutas de trabajo y temporales se generan y controlan internamente por el
+    propio flujo del programa.
+- No se permite que el usuario final defina rutas arbitrarias para
+    instalaciones o descargas, mitigando riesgos de path-injection.
+- El uso de `msvcrt` para capturar interrupciones manuales (Ctrl+C) permite
+    una salida controlada y limpia del script.
+- El manejo de excepciones asegura que cualquier error inesperado se registre
+    adecuadamente y no interrumpa el flujo sin control.
+
 Ejecuta este archivo para iniciar la herramienta.
 """
 
 import logging
-import multiprocessing
+import msvcrt
+from pathlib import Path
+from typing import Any, Dict
 
-from colorama import Fore, init
+import colorama
+from colorama import Fore, Style
 from manager_office_tool import (
     OfficeInstaller,
     OfficeManager,
@@ -54,28 +67,28 @@ from manager_office_tool import (
 )
 
 
-def prepare_environment() -> dict:
+def prepare_environment() -> Dict[str, Any]:
     """
-    Prepara las rutas necesarias para logs, instalación y desinstalación,
-    y configura el logging.
+    Prepara el entorno mínimo necesario y retorna las rutas relevantes.
 
     Returns:
         dict: Diccionario con las rutas preparadas.
     """
-    temp_dir = get_temp_dir()
-    logs_folder = ensure_subfolder(temp_dir, "logs")
-    office_install_dir = ensure_subfolder(temp_dir, "InstallOfficeFiles")
-    office_uninstall_dir = ensure_subfolder(temp_dir, "UninstallOfficeFiles")
+    try:
+        temp_dir = get_temp_dir()
+        logs_folder = ensure_subfolder(temp_dir, "logs")
 
-    init_logging(str(logs_folder))  # Configura logging al inicio
-    init(autoreset=True)  # Inicializa colorama para colores en consola
+        init_logging(str(logs_folder))
+        colorama.init()
 
-    return {
-        "temp_dir": temp_dir,
-        "logs_folder": logs_folder,
-        "install_dir": office_install_dir,
-        "uninstall_dir": office_uninstall_dir,
-    }
+        return {
+            "temp_dir": temp_dir,
+            "logs_folder": logs_folder,
+        }
+    except Exception as e:
+        msg = f"Error preparando entorno: {e}"
+        logging.error(f"{Fore.RED}{msg}{Style.RESET_ALL}")
+        return {}
 
 
 def main() -> None:
@@ -87,14 +100,41 @@ def main() -> None:
     - Ofrece la opción de desinstalar versiones encontradas con ODT.
     - Permite configurar e instalar una nueva versión de Office.
     - Gestiona errores y limpia archivos temporales al finalizar.
+    - Maneja interrupciones manuales (Ctrl+C) de forma controlada.
+    - Utiliza una interfaz gráfica para la selección de versiones y opciones.
+    - Registra toda la actividad en un archivo de log para auditoría y
+    depuración.
+
+    Seguridad:
+    - Las rutas de trabajo y temporales se generan internamente y no provienen
+        de entrada de usuario.
+    - No se permite que el usuario final defina rutas arbitrarias para
+        instalaciones o descargas, mitigando riesgos de path-injection.
     """
+    office_install_dir: Path | None = None
+    office_uninstall_dir: Path | None = None
+
     env = prepare_environment()
-    logging.info("Entorno preparado correctamente.")
-    office_install_dir = env["install_dir"]
-    office_uninstall_dir = env["uninstall_dir"]
+    try:
+        temp_dir = env["temp_dir"]
+        logging.info(
+            f"{Fore.GREEN}Entorno preparado correctamente.{Style.RESET_ALL}"
+        )
+    except KeyError:
+        print(
+            "No se pudo preparar el entorno temporal. Presione cualquier "
+            "tecla para salir..."
+        )
+        msvcrt.getch()
+        return
+
     try:
         # Pregunta al usuario si desea detectar versiones de Office instaladas
-        if ask_yes_no("¿Desea detectar las versiones de Office instaladas?"):
+        if ask_yes_no(
+            f"{Fore.LIGHTCYAN_EX}"
+            "¿Desea detectar las versiones de Office instaladas? (S/N):"
+            f"{Style.RESET_ALL}"
+        ):
             manager = OfficeManager(show_all=False)
             installations = manager.get_installations()
             manager.display_installations()
@@ -103,139 +143,178 @@ def main() -> None:
             if installations:
                 if len(installations) == 1:
                     if ask_yes_no(
-                        "¿Desea desinstalar la versión encontrada con ODT?"
+                        f"{Fore.LIGHTCYAN_EX}"
+                        "¿Desea desinstalar "
+                        "la versión encontrada con ODT? (S/N):"
+                        f"{Style.RESET_ALL}"
                     ):
+                        office_uninstall_dir = ensure_subfolder(
+                            temp_dir, "UninstallOfficeFiles"
+                        )
                         run_uninstallers(installations, office_uninstall_dir)
                     else:
-                        print(
-                            Fore.RED
-                            + (
-                                "Advertencia: "
-                                "Tener múltiples versiones "
-                                "puede causar conflictos."
-                            )
+                        logging.info(
+                            f"{Fore.RED}"
+                            "Advertencia: Tener múltiples versiones "
+                            "puede causar conflictos."
+                            f"{Style.RESET_ALL}"
                         )
                 else:
                     # Muestra menu de opciones para desinstalar
-                    print(Fore.LIGHTWHITE_EX + "Seleccione una opción:")
-                    print(
-                        Fore.LIGHTWHITE_EX
-                        + ("1 - No desinstalar ninguna versión")
+                    logging.info(
+                        f"{Fore.LIGHTCYAN_EX}"
+                        "Seleccione una opción:"
+                        f"{Style.RESET_ALL}"
                     )
-                    print(
-                        Fore.LIGHTWHITE_EX
-                        + ("2 - Desinstalar todas las versiones encontradas")
+                    logging.info(
+                        f"{Fore.LIGHTWHITE_EX}"
+                        "1 - No desinstalar ninguna versión"
+                        f"{Style.RESET_ALL}"
                     )
-                    print(
-                        Fore.LIGHTWHITE_EX
-                        + (
-                            "3 - Elegir una versión específica "
-                            "para desinstalar"
-                        )
+                    logging.info(
+                        f"{Fore.LIGHTWHITE_EX}"
+                        "2 - Desinstalar todas las versiones encontradas"
+                        f"{Style.RESET_ALL}"
+                    )
+                    logging.info(
+                        f"{Fore.LIGHTWHITE_EX}"
+                        "3 - Elegir una versión específica para desinstalar"
+                        f"{Style.RESET_ALL}"
                     )
                     opcion = input(
-                        Fore.LIGHTWHITE_EX + "Opción (1/2/3): "
+                        f"{Fore.LIGHTCYAN_EX}"
+                        "Opción (1/2/3): "
+                        f"{Style.RESET_ALL}"
                     ).strip()
 
                     if opcion == "2":
+                        office_uninstall_dir = ensure_subfolder(
+                            temp_dir, "UninstallOfficeFiles"
+                        )
                         run_uninstallers(installations, office_uninstall_dir)
 
                     elif opcion == "3":
-                        print(
-                            Fore.LIGHTWHITE_EX
-                            + ("Seleccione la versión que desea desinstalar:")
+                        logging.info(
+                            f"{Fore.LIGHTCYAN_EX}"
+                            "Seleccione la versión que desea desinstalar:"
+                            f"{Style.RESET_ALL}"
                         )
                         for idx, install in enumerate(installations, 1):
-                            print(
-                                Fore.LIGHTCYAN_EX + (f"{idx} - {install.name}")
+                            logging.info(
+                                f"{Fore.LIGHTCYAN_EX}"
+                                f"{idx} - {install.name}"
+                                f"{Style.RESET_ALL}"
                             )
 
                         seleccion = input(
-                            Fore.LIGHTWHITE_EX
-                            + "Ingrese el número de la versión a desinstalar: "
+                            f"{Fore.LIGHTCYAN_EX}"
+                            "Ingrese el número de la versión a desinstalar: "
+                            f"{Style.RESET_ALL}"
                         ).strip()
                         if seleccion.isdigit() and 1 <= int(seleccion) <= len(
                             installations
                         ):
                             seleccionada = installations[int(seleccion) - 1]
-                            print(
-                                Fore.LIGHTWHITE_EX
-                                + (
-                                    "Versión seleccionada: "
-                                    f"{seleccionada.name}"
-                                    f"({seleccionada.client_culture})"
-                                )
+                            logging.info(
+                                f"{Fore.LIGHTWHITE_EX}"
+                                "Versión seleccionada: "
+                                f"{seleccionada.name}"
+                                f"({seleccionada.client_culture})"
+                                f"{Style.RESET_ALL}"
+                            )
+                            office_uninstall_dir = ensure_subfolder(
+                                temp_dir, "UninstallOfficeFiles"
                             )
                             run_uninstallers(
                                 [seleccionada], office_uninstall_dir
                             )
                         else:
-                            print(
-                                Fore.YELLOW
-                                + (
-                                    "Selección inválida. "
-                                    "No se realizará ninguna desinstalación."
-                                )
+                            logging.info(
+                                f"{Fore.YELLOW}"
+                                "Selección inválida. "
+                                "No se realizará ninguna desinstalación."
+                                f"{Style.RESET_ALL}"
                             )
                     else:
-                        print(
-                            Fore.YELLOW
-                            + ("No se realizará ninguna desinstalación.")
+                        logging.info(
+                            f"{Fore.YELLOW}"
+                            "No se realizará ninguna desinstalación."
+                            f"{Style.RESET_ALL}"
                         )
         else:
-            print(
-                Fore.RED
-                + (
-                    "Advertencia: "
-                    "Si tiene más de una versión de Office instalada, "
-                    "podría ocasionar problemas."
-                )
+            logging.info(
+                f"{Fore.RED}"
+                "Advertencia: Si tiene más de una versión de Office "
+                "instalada, podría ocasionar problemas."
+                f"{Style.RESET_ALL}"
             )
 
-        if ask_yes_no("¿Desea proceder con una nueva instalación de Office?"):
-            print("Iniciando configuración de instalación de Office...")
+        if ask_yes_no(
+            f"{Fore.LIGHTCYAN_EX}"
+            "¿Desea proceder con una nueva instalación de Office? (S/N): "
+            f"{Style.RESET_ALL}"
+        ):
+            logging.info(
+                f"{Fore.GREEN}"
+                "Iniciando configuración de instalación de Office..."
+                f"{Style.RESET_ALL}"
+            )
+            office_install_dir = ensure_subfolder(
+                temp_dir, "InstallOfficeFiles"
+            )
             selection_window = OfficeSelectionWindow(office_install_dir)
-            cancelled = selection_window.show()
+            install_subdir_path, selected_version = selection_window.show()
 
-            if cancelled:
-                print(Fore.YELLOW + "El usuario canceló la instalación.")
+            if not install_subdir_path:
+                logging.info(
+                    f"{Fore.YELLOW}"
+                    "El usuario canceló la instalación."
+                    f"{Style.RESET_ALL}"
+                )
+            elif selected_version is None:
+                logging.error(
+                    f"{Fore.RED}"
+                    "No se pudo determinar la versión seleccionada de Office."
+                    f"{Style.RESET_ALL}"
+                )
             else:
-                installer = OfficeInstaller(str(office_install_dir))
+                installer = OfficeInstaller(
+                    str(install_subdir_path), selected_version
+                )
                 installer.run_setup_commands()
         else:
-            print(Fore.YELLOW + "Proceso cancelado por el usuario.")
+            logging.info(
+                f"{Fore.YELLOW}"
+                "Proceso cancelado por el usuario."
+                f"{Style.RESET_ALL}"
+            )
 
     except KeyboardInterrupt:
         # Maneja la interrupción manual del usuario (Ctrl+C)
-        logging.warning("Ejecución interrumpida por el usuario (Ctrl+C).")
-        print(Fore.YELLOW + "\nProceso cancelado manualmente.")
+        msg = "Ejecución interrumpida por el usuario (Ctrl+C)."
+        logging.error(f"{Fore.YELLOW}{msg}{Style.RESET_ALL}")
 
     except Exception as e:
         # Captura y muestra cualquier error inesperado
-        logging.exception(
-            "Ocurrió un error inesperado en la ejecución principal."
-        )
-        print(Fore.RED + f"Error crítico: {e}")
-        print(
-            Fore.YELLOW
-            + (
-                "Sugerencias: "
-                "Verifica tu conexión a internet, "
-                "permisos de administrador y espacio en disco."
-            )
-        )
+        msg = f"Ocurrió un error inesperado en la ejecución principal. {e}"
+        logging.exception(f"{Fore.RED}{msg}{Style.RESET_ALL}")
 
     finally:
         # Solo limpia si las carpetas existen
-        folders_to_clean = []
+        folders_to_clean: list[Path] = []
         if office_install_dir is not None:
             folders_to_clean.append(office_install_dir)
         if office_uninstall_dir is not None:
             folders_to_clean.append(office_uninstall_dir)
         if folders_to_clean:
             clean_temp_folders_ui(folders_to_clean)
+        print(
+            f"{Fore.LIGHTWHITE_EX}"
+            "Presione cualquier tecla para salir..."
+            f"{Style.RESET_ALL}"
+        )
+        msvcrt.getch()
 
 
 if __name__ == "__main__":
-    multiprocessing.freeze_support()
     main()

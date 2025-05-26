@@ -5,4 +5,5 @@ ttkbootstrap
 pyyaml
 requests
 tqdm
-scrapy
+PyQt5
+PyQtWebEngine

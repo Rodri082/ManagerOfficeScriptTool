@@ -1,8 +1,8 @@
 """
 Paquete principal de ManagerOfficeScriptTool.
 
-Este módulo expone las clases, funciones y utilidades principales del proyecto,
-facilitando su acceso desde scripts externos como main.py.
+Define la API pública del proyecto y expone las clases, funciones y utilidades
+principales para facilitar su uso desde scripts externos como main.py.
 """
 
 from .core import (

@@ -6,8 +6,8 @@
 
 ## 🚀 ¿Qué es ManagerOfficeScriptTool?
 
-`ManagerOfficeScriptTool` es una herramienta profesional y modular para detectar, desinstalar e instalar Microsoft Office en equipos Windows.  
-A partir de la versión **5.0**, el proyecto ha sido completamente **refactorizado y modularizado**, separando la lógica en submódulos claros y configurables, con una interfaz gráfica moderna y soporte para múltiples versiones, arquitecturas e idiomas.
+`ManagerOfficeScriptTool` es una herramienta profesional, **100% open source**, para detectar, desinstalar e instalar Microsoft Office en equipos Windows.  
+Desde la versión **5.0**, el proyecto ha sido completamente **refactorizado y modularizado**, separando la lógica en submódulos claros y configurables, con una interfaz gráfica moderna y soporte para múltiples versiones, arquitecturas e idiomas.
 
 ---
 
@@ -16,51 +16,61 @@ A partir de la versión **5.0**, el proyecto ha sido completamente **refactoriza
 ```
 ManagerOfficeScriptTool/
 │
-├── core/                   # Lógica de negocio y acceso a registro/ODT
-│   ├── __init__.py
-│   ├── office_manager.py
-│   ├── office_installation.py
-│   ├── odt_manager.py
-│   └── registry_utils.py
+├── manager_office_tool/               # Paquete principal del código fuente
+│   ├── __init__.py                    # API pública del paquete
+│   │
+│   ├── core/                          # Lógica de negocio y gestión de Office
+│   │   ├── __init__.py
+│   │   ├── office_manager.py          # Detección y visualización de instalaciones
+│   │   ├── office_installation.py     # Representación de una instalación detectada
+│   │   ├── odt_manager.py             # Descarga y extracción de ODT
+│   │   ├── odt_fetcher.py             # Obtención de la URL oficial de ODT
+│   │   └── registry_utils.py          # Acceso seguro al registro de Windows
+│   │
+│   ├── gui/                           # Interfaz gráfica (ttkbootstrap)
+│   │   ├── __init__.py
+│   │   └── gui.py                     # Ventana de selección y configuración
+│   │
+│   ├── scripts/                       # Instalador y desinstalador de Office
+│   │   ├── __init__.py
+│   │   ├── installer.py               # Instalación de Office
+│   │   └── uninstaller.py             # Desinstalación de Office
+│   │
+│   └── utils/                         # Utilidades generales y helpers
+│       ├── __init__.py
+│       ├── logging_utils.py           # Logging profesional y seguro
+│       ├── path_utils.py              # Manejo avanzado y seguro de rutas
+│       ├── console_utils.py           # Utilidades para consola
+│       └── gui_utils.py               # Helpers para la GUI
 │
-├── gui/                    # Interfaz gráfica (ttkbootstrap)
-│   ├── __init__.py
-│   └── gui.py
+├── main.py                            # Punto de entrada y orquestador del flujo
+├── config.yaml                        # Configuración centralizada (versiones, apps, idiomas)
+├── icon.ico                           # Icono del ejecutable
 │
-├── scripts/                # Instalador y desinstalador
-│   ├── __init__.py
-│   ├── installer.py
-│   └── uninstaller.py
+├── nuitka_build_instructions.bat      # Script de compilación Nuitka (.exe)
+├── requirements.txt                   # Dependencias principales del proyecto
+├── requirements-dev.txt               # Dependencias de desarrollo y tipado
 │
-├── config.yaml             # Configuración centralizada
-├── icon.ico                # Icono del ejecutable
-├── main.py                 # Punto de entrada y orquestador del flujo
-├── utils.py                # Utilidades generales (logs, rutas, diálogos)
-│
-├── requirements.txt        # Dependencias principales
-├── requirements-dev.txt    # Dependencias de desarrollo/tipado
-│
-├── nuitka_build_instructions.bat  # Script de compilación Nuitka
-│
-├── README.md               # Documentación principal
-├── CHANGELOG.md            # Historial de cambios
-├── LICENSE                 # Licencia del proyecto
+├── README.md                          # Documentación principal
+├── CHANGELOG.md                       # Historial de cambios y versiones
+└── LICENSE                            # Licencia del proyecto
 ```
 
 ---
 
 ## ✨ Características Principales
 
-- **Modular y escalable**: Separación clara de lógica, GUI, utilidades y scripts.
-- **Configuración centralizada**: Todas las versiones, canales, apps e idiomas en `config.yaml`.
+- **Arquitectura modular y escalable**: Separación clara de lógica, GUI, utilidades y scripts.
+- **Configuración centralizada**: Todas las versiones, canales, apps e idiomas en [`config.yaml`](config.yaml).
 - **Detección avanzada** de instalaciones de Office (todas las versiones soportadas).
-- **Desinstalación limpia** usando Office Deployment Tool (ODT).
+- **Desinstalación limpia y segura** usando Office Deployment Tool (ODT) oficial.
 - **Instalación automatizada** con generación dinámica de `configuration.xml`.
 - **Interfaz gráfica moderna** (ttkbootstrap) para seleccionar versión, apps, arquitectura e idioma.
 - **Descarga directa y robusta** del ODT desde Microsoft, con reintentos y validación.
-- **Logging profesional** y rutas anonimizadas.
+- **Logging profesional y seguro**: Rutas y claves anonimizadas, sin exponer datos sensibles.
 - **Cumplimiento estricto de PEP8** y uso de herramientas como Black, isort, flake8 y mypy.
 - **Preparado para integración continua y testing**.
+- **No instala software de terceros ni envía datos personales**.
 
 ---
 
@@ -79,7 +89,7 @@ ManagerOfficeScriptTool/
    ```sh
    pip install -r requirements.txt
    ```
-3. Opcional, recomendado para desarrollo y análisis estático. Instala las dependencias de desarrollo:
+3. (Opcional, recomendado para desarrollo y análisis estático) Instala las dependencias de desarrollo:
    ```sh
    pip install -r requirements-dev.txt
    ```
@@ -93,8 +103,8 @@ ManagerOfficeScriptTool/
 
 ## 🧩 Configuración
 
-Edita `config.yaml` para:
-- Agregar/quitar versiones soportadas.
+Edita [`config.yaml`](config.yaml) para:
+- Agregar o quitar versiones soportadas.
 - Definir canales y product IDs.
 - Personalizar las aplicaciones disponibles por versión.
 - Añadir nuevos idiomas.
@@ -107,6 +117,8 @@ Edita `config.yaml` para:
 - Solo descarga herramientas oficiales de Microsoft.
 - No instala software de terceros ni envía datos personales.
 - Logging seguro y rutas anonimizadas.
+- Acceso al registro de Windows de forma segura y eficiente.
+- No se aceptan rutas arbitrarias del usuario: todas las rutas temporales y de trabajo se generan internamente.
 
 ---
 
@@ -126,6 +138,7 @@ Edita `config.yaml` para:
 - Usa Black, isort, flake8 y mypy para mantener la calidad.
 - Estructura lista para agregar tests (`tests/`).
 - Pull requests y sugerencias son bienvenidas.
+- Modularidad y tipado para facilitar la extensión y el testing.
 
 ---
 
@@ -141,13 +154,13 @@ o en PowerShell:
 .\nuitka_build_instructions.bat
 ```
 
-Consulta el `CHANGELOG.md` para detalles de versiones y mejoras.
+Consulta el [`CHANGELOG.md`](CHANGELOG.md) para detalles de versiones y mejoras.
 
 ---
 
 ## 📄 Licencia
 
-Este proyecto está licenciado bajo la [Licencia MIT](./LICENSE).
+Este proyecto está licenciado bajo la [Licencia MIT](LICENSE).
 
 ---
 
@@ -156,7 +169,7 @@ Este proyecto está licenciado bajo la [Licencia MIT](./LICENSE).
 - [Office Deployment Tool (ODT)](http://aka.ms/ODT)
 - [ttkbootstrap](https://ttkbootstrap.readthedocs.io/)
 - [colorama](https://pypi.org/project/colorama/)
-- [Scrapy](https://scrapy.org/)
+- [PyQt5](https://pypi.org/project/PyQt5/)
 
 ---
 

@@ -1,4 +1,13 @@
-from colorama import Fore
+"""
+console_utils.py
+
+Utilidades para interacción básica con el usuario en consola.
+Incluye funciones para preguntas de sí/no con validación robusta.
+"""
+
+import logging
+
+from colorama import Fore, Style
 
 
 def ask_yes_no(message: str) -> bool:
@@ -13,13 +22,11 @@ def ask_yes_no(message: str) -> bool:
         bool: True si la respuesta es afirmativa, False en caso contrario.
     """
     while True:
-        respuesta = input(f"{message} (S/N): ").strip().lower()
+        respuesta = input(f"INFO - {message}").strip().lower()
         if respuesta in ("s", "sí", "si"):
             return True
         elif respuesta in ("n", "no"):
             return False
         else:
-            print(
-                Fore.YELLOW
-                + ("Respuesta no válida. Por favor ingresa 'S' o 'N'.")
-            )
+            msg = "Respuesta no válida. Por favor ingresa 'S' o 'N'."
+            logging.warning(f"{Fore.YELLOW}{msg}{Style.RESET_ALL}")

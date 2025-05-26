@@ -5,33 +5,42 @@ Historial de cambios del proyecto **ManagerOfficeScriptTool**
 ---
 ## [5.0] - 2025-05-19
 ### 🚀 Modularización total y refactor profesional
-- El proyecto se reestructura completamente: de un solo archivo (`ManagerOfficeScriptTool.py`) a un paquete modularizado.
+- El proyecto se reestructura completamente: de un solo archivo (`ManagerOfficeScriptTool.py`) a un **paquete modularizado**.
 - Separación clara de responsabilidades en submódulos:
   - `core/`: lógica de negocio (gestión de Office, registro, ODT, instalación detectada).
   - `gui/`: interfaz gráfica moderna con ttkbootstrap.
   - `scripts/`: instalador y desinstalador.
-  - `utils.py`: utilidades generales.
+  - `utils/`: utilidades generales (consola, GUI, logging, rutas).
   - `config.yaml`: configuración centralizada.
   - `main.py`: punto de entrada y orquestador del flujo.
 - Cada módulo y clase cuenta con docstrings detallados y tipado de argumentos.
 
-### 🛠️ Mejoras de arquitectura y mantenibilidad
+### 🛠️ Mejoras de arquitectura, seguridad y mantenibilidad
 - Imports reorganizados y relativos a la nueva estructura de carpetas.
 - Configuración, versiones, canales y apps movidos a `config.yaml` para fácil mantenimiento.
 - Limpieza y manejo robusto de carpetas temporales.
-- Logging y manejo de errores mejorados en todos los módulos.
+- Logging profesional y seguro: rutas y claves anonimizadas, sin exponer datos sensibles.
+- Acceso al registro de Windows de forma segura y eficiente.
+- **No se aceptan rutas arbitrarias del usuario**: todas las rutas temporales y de trabajo se generan internamente.
 - Cumplimiento estricto de PEP8: líneas ≤ 79 caracteres, uso de paréntesis en prints y logs largos.
 - Uso de Black, isort, flake8 y mypy recomendado y compatible.
+
+### 🌐 Descarga de ODT: de Scrapy a PyQt5
+- **Eliminado Scrapy**: ahora se utiliza **PyQt5** para renderizar la página oficial de Microsoft y extraer la URL, nombre y tamaño del ODT.
+- Eliminadas todas las dependencias y referencias a Scrapy.
+- Mayor robustez ante cambios en la web de Microsoft.
 
 ### 👤 Experiencia de usuario y extensibilidad
 - Mensajes de usuario claros y coloridos en consola y GUI.
 - Validaciones exhaustivas en la GUI y en consola.
 - Modularidad que facilita la extensión (nuevas versiones, apps, idiomas, etc.).
 - Preparado para integración de tests y CI/CD.
+- Estructura profesional, fácil de mantener, escalar y compartir en GitHub.
 
 ### 📦 Listo para producción y colaboración
-- Estructura profesional, fácil de mantener, escalar y compartir en GitHub.
-- Recomendaciones para agregar `README.md`, `requirements.txt`, `.gitignore` y carpeta `tests/` para futuras mejoras.
+- README.md actualizado: refleja la nueva estructura, dependencias y créditos (PyQt5 en lugar de Scrapy).
+- Recomendaciones para agregar `requirements.txt`, `.gitignore` y carpeta `tests/` para futuras mejoras.
+- Compilación recomendada con Nuitka para ejecutable optimizado y seguro.
 
 ---
 

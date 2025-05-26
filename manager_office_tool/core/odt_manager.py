@@ -1,9 +1,8 @@
 """
 odt_manager.py
 
-Módulo encargado de gestionar la descarga y extracción
-del Office Deployment Tool (ODT) utilizando Scrapy para obtener
-la URL oficial y Requests para la descarga.
+Gestión de descarga y extracción del Office Deployment Tool (ODT) desde la web
+oficial de Microsoft.
 Incluye manejo de reintentos, descargas reanudables y extracción silenciosa.
 """
 
@@ -13,39 +12,31 @@ import random
 import subprocess
 import tempfile
 import time
-from multiprocessing import Pipe, Process
 from pathlib import Path
 from typing import Optional
 from urllib.parse import urlparse
 
 import requests
-from colorama import Fore
+from colorama import Fore, Style
 from manager_office_tool.utils import safe_log_path
 from requests.adapters import HTTPAdapter
 from tqdm import tqdm
 from urllib3.util.retry import Retry
 
-from .odt_spider import fetch_odt_download_info
-
-
-def _fetch_info_in_process(download_id: str, conn):
-    result = fetch_odt_download_info(download_id)
-    conn.send(result)
-    conn.close()
+from .odt_fetcher import fetch_odt_download_info
 
 
 class ODTManager:
     """
     Gestiona la descarga y extracción del Office Deployment Tool (ODT).
 
-    Métodos:
-        get_download_url(version_identifier): Obtiene la URL de descarga
-            del ODT.
-        download_and_extract(version_identifier, max_retries): Descarga y
-            extrae el ODT.
+    Seguridad:
+    - El directorio de instalación debe ser generado por la lógica interna
+        del programa.
+    - No se recomienda aceptar rutas arbitrarias de entrada de usuario para
+        evitar riesgos de path-injection.
     """
 
-    # IDs oficiales de descarga de ODT desde Microsoft Download Center
     ODT_DOWNLOAD_ID_OFFICE_2013 = "36778"
     ODT_DOWNLOAD_ID_OFFICE_2016_AND_LATER = "49117"
 
@@ -58,35 +49,45 @@ class ODTManager:
         self.expected_name: Optional[str] = None
         self.expected_size: Optional[int] = None
 
-    def _run_scrapy_spider(self, download_id: str) -> Optional[tuple]:
-        parent_conn, child_conn = Pipe()
-        p = Process(
-            target=_fetch_info_in_process, args=(download_id, child_conn)
-        )
-        p.start()
-        p.join()
-
-        if parent_conn.poll(1):  # Espera 1 segundo para recibir datos
-            try:
-                result = parent_conn.recv()
-                return result["url"], result["name"], result["size"]
-            except Exception as e:
-                logging.error(f"Fallo al recibir datos del spider: {e}")
-        else:
-            logging.error(
-                "El proceso terminó, pero no se recibieron datos del spider."
-            )
+    def _run_odt_fetcher(
+        self, download_id: str
+    ) -> Optional[tuple[str, str, int]]:
+        """
+        Ejecuta fetch_odt_download_info y retorna
+        (url, nombre, tamaño) del ODT.
+        """
+        try:
+            result = fetch_odt_download_info(download_id)
+            if result:
+                url = str(result["url"])
+                name = str(result["name"])
+                size_raw = result["size"]
+                if isinstance(size_raw, int):
+                    size = size_raw
+                elif isinstance(size_raw, str) and size_raw.isdigit():
+                    size = int(size_raw)
+                else:
+                    size = 0
+                return url, name, size
+        except Exception as e:
+            msg = f"Error al obtener info de descarga : {e}"
+            logging.exception(f"{Fore.RED}{msg}{Style.RESET_ALL}")
         return None
 
     def get_download_url(self, version_identifier: str) -> Optional[str]:
+        """
+        Obtiene la URL de descarga del ODT según la versión de Office.
+        """
+        logging.debug(
+            f"[*] ODTManager: obteniendo URL para '{version_identifier}'…"
+        )
         version_id = (
             self.ODT_DOWNLOAD_ID_OFFICE_2013
             if "2013" in version_identifier
             else self.ODT_DOWNLOAD_ID_OFFICE_2016_AND_LATER
         )
-
         try:
-            download_info = self._run_scrapy_spider(version_id)
+            download_info = self._run_odt_fetcher(version_id)
             if download_info:
                 self.expected_name = download_info[1]
                 self.expected_size = download_info[2]
@@ -101,12 +102,6 @@ class ODTManager:
         """
         Verifica si el archivo descargado es válido según nombre y
         tamaño esperados.
-
-        Args:
-            path (Path): Ruta al archivo descargado.
-
-        Returns:
-            bool: True si el archivo es válido, False en caso contrario.
         """
         return (
             path.exists()
@@ -129,19 +124,17 @@ class ODTManager:
                 caso contrario.
         """
         if not self.office_dir:
-            logging.error("Directorio de instalación no definido")
+            msg = "Directorio de instalación no definido."
+            logging.error(f"{Fore.RED}{msg}{Style.RESET_ALL}")
             return False
-
+        logging.debug(
+            "[*] ODTManager: download_and_extract iniciada para "
+            f"{version_identifier}"
+        )
         url = self.get_download_url(version_identifier)
         if not url:
-            logging.error("No se pudo obtener la URL de descarga.")
-            print(
-                Fore.RED
-                + (
-                    "No se pudo obtener la URL de descarga. "
-                    "Verifica tu conexión a internet o intenta más tarde."
-                )
-            )
+            msg = "No se pudo obtener la URL de descarga."
+            logging.error(f"{Fore.RED}{msg}{Style.RESET_ALL}")
             return False
 
         office_dir = Path(self.office_dir)
@@ -152,7 +145,6 @@ class ODTManager:
         sanitized_dir = safe_log_path(self.office_dir)
 
         session = requests.Session()
-        # Configura la política de reintentos para la sesión HTTP
         retries = Retry(
             total=max_retries,
             backoff_factor=1,
@@ -161,22 +153,19 @@ class ODTManager:
         )
         session.mount("https://", HTTPAdapter(max_retries=retries))
 
-        # Usamos un archivo temporal para soportar descargas
-        # interrumpidas y reanudables
         with tempfile.NamedTemporaryFile(dir=office_dir, delete=False) as tmp:
             tmp_path = Path(tmp.name)
         sanitized_tmp_path = safe_log_path(tmp_path)
 
         try:
             for attempt in range(1, max_retries + 1):
-                # Si el archivo ya existe y es válido,
-                # no es necesario descargarlo de nuevo
                 if self._is_valid_download(exe_path):
                     logging.info(
+                        f"{Fore.GREEN}"
                         f"Binario ya descargado y válido: {sanitized_path}"
+                        f"{Style.RESET_ALL}"
                     )
                     break
-
                 headers = {}
                 downloaded = (
                     tmp_path.stat().st_size if tmp_path.exists() else 0
@@ -186,7 +175,12 @@ class ODTManager:
                     if head.headers.get("Accept-Ranges") == "bytes":
                         headers["Range"] = f"bytes={downloaded}-"
 
-                logging.info(f"[{attempt}] Descargando {url}")
+                logging.info(
+                    f"{Fore.GREEN}"
+                    f"Descargando {exe_file_name}"
+                    f"{Style.RESET_ALL}"
+                )
+                logging.info(f"{Fore.GREEN}URL: {url}{Style.RESET_ALL}")
                 try:
                     response = session.get(
                         url, stream=True, timeout=(3, 30), headers=headers
@@ -202,9 +196,7 @@ class ODTManager:
                         initial=downloaded,
                         unit="B",
                         unit_scale=True,
-                        desc=(
-                            f"Intento {attempt} - Descargando {exe_file_name}"
-                        ),
+                        desc=(f"INFO - [{attempt}/{max_retries}]"),
                     ) as bar:
                         for chunk in response.iter_content(8192):
                             if chunk:
@@ -214,12 +206,9 @@ class ODTManager:
                                 bar.update(len(chunk))
 
                     tmp_path.replace(exe_path)
-                    print(
-                        Fore.GREEN
-                        + (
-                            "Archivo descargado exitosamente en: "
-                            f"{sanitized_path}"
-                        )
+                    logging.debug(
+                        "[*] Archivo descargado exitosamente en: "
+                        f"{sanitized_path}"
                     )
 
                     if self._is_valid_download(exe_path):
@@ -228,26 +217,19 @@ class ODTManager:
                     logging.warning(
                         f"Error en descarga (intento {attempt}): {e}"
                     )
-                    print(
-                        Fore.RED
-                        + (
-                            "Error de red durante la descarga. "
-                            "Verifica tu conexión a internet "
-                            "y permisos de red."
-                        )
-                    )
                     if attempt < max_retries:
                         delay = min(2**attempt + random.uniform(0, 1), 10)
                         logging.info(
-                            f"Esperando {delay:.2f} segundos antes del"
-                            "próximo intento..."
+                            f"{Fore.YELLOW}"
+                            f"Esperando {delay:.2f} "
+                            "segundos antes del próximo intento..."
+                            f"{Style.RESET_ALL}"
                         )
                         time.sleep(delay)
                         continue
                     else:
-                        logging.error(
-                            "No se completó la descarga tras varios intentos"
-                        )
+                        msg = f"Descarga fallida tras {max_retries} intentos."
+                        logging.error(f"{Fore.RED}{msg}{Style.RESET_ALL}")
                         return False
 
             if self._is_valid_download(exe_path):
@@ -265,15 +247,18 @@ class ODTManager:
                         check=True,
                     )
                     logging.info(
-                        f"ODT extraído correctamente en {sanitized_dir}"
+                        f"{Fore.GREEN}"
+                        f"ODT extraído: {sanitized_dir}"
+                        f"{Style.RESET_ALL}"
                     )
                     return True
                 except subprocess.CalledProcessError as e:
                     logging.error(f"Error al ejecutar el ODT:\n{e.stderr}")
+                    msg = "Error al ejecutar el ODT."
+                    logging.error(f"{Fore.RED}{msg}{Style.RESET_ALL}")
                 except PermissionError:
-                    logging.error(
-                        "Permiso denegado al intentar escribir en el disco."
-                    )
+                    msg = "Permiso denegado al intentar escribir en el disco."
+                    logging.error(f"{Fore.RED}{msg}{Style.RESET_ALL}")
                 except OSError as e:
                     logging.error(f"Error del sistema de archivos: {e}")
                 except Exception:
@@ -285,9 +270,10 @@ class ODTManager:
                 try:
                     tmp_path.unlink()
                 except OSError:
-                    logging.warning(
+                    msg = (
                         "No se pudo eliminar el archivo temporal: "
                         f"{sanitized_tmp_path}"
                     )
+                    logging.warning(f"{Fore.YELLOW}{msg}{Style.RESET_ALL}")
 
         return False
