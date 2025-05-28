@@ -1,12 +1,12 @@
-# MODTool
+# ManagerOfficeScriptTool
 
 **Gestión avanzada, modular y automatizada de instalaciones de Microsoft Office en Windows**
 
 ---
 
-## 🚀 ¿Qué es MODTool?
+## 🚀 ¿Qué es ManagerOfficeScriptTool?
 
-`MODTool` es una herramienta profesional, **100% open source**, para detectar, desinstalar e instalar Microsoft Office en equipos Windows.  
+`ManagerOfficeScriptTool` es una herramienta profesional, **100% open source**, para detectar, desinstalar e instalar Microsoft Office en equipos Windows.  
 Desde la versión **5.0**, el proyecto ha sido completamente **refactorizado y modularizado**, separando la lógica en submódulos claros y configurables, con una interfaz gráfica moderna y soporte para múltiples versiones, arquitecturas e idiomas.
 
 ---
@@ -14,7 +14,7 @@ Desde la versión **5.0**, el proyecto ha sido completamente **refactorizado y m
 ## 🗂️ Estructura del Proyecto
 
 ```
-MODTool/
+ManagerOfficeScriptTool/
 │
 ├── manager_office_tool/               # Paquete principal del código fuente
 │   ├── __init__.py                    # API pública del paquete
