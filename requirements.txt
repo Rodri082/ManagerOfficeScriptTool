@@ -2,9 +2,6 @@
 
 colorama
 ttkbootstrap
-pyyaml
+PyYAML
 requests
 tqdm
-PySide6
-PySide6-Addons
-PySide6-Essentials

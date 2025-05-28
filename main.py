@@ -6,26 +6,7 @@ Microsoft Office en Windows.
 
 Este script principal orquesta la detección, desinstalación e instalación de
 Office de forma interactiva y robusta, apoyándose en módulos y archivos de
-configuración especializados para cada tarea:
-
-- `config.yaml`: Archivo central de configuración. Define versiones soportadas,
-  aplicaciones disponibles por versión e idiomas.
-- `office_manager.py`: Detecta y muestra instalaciones existentes de Office
-  consultando el registro de Windows.
-- `office_installation.py`: Representa y procesa la información de
-  cada instalación detectada.
-- `uninstaller.py`: Desinstala versiones de Office utilizando ODT y generación
-  dinámica de XML.
-- `installer.py`: Instala Office usando setup.exe y configuration.xml, con
-  validaciones y manejo de errores.
-- `gui.py`: Proporciona una interfaz gráfica moderna para seleccionar versión,
-  idioma, arquitectura y apps.
-- `odt_manager.py`: Descarga y extrae ODT desde Microsoft, y genera el XML de
-  instalación.
-- `registry_utils.py`: Utilidades para leer el registro de Windows de
-  forma segura y eficiente.
-- `utils.py`: Funciones generales para manejo de rutas, logs, diálogos y
-  carpetas temporales.
+configuración especializados para cada tarea.
 
 El flujo principal es:
 1. Detectar instalaciones existentes de Office.
@@ -49,6 +30,7 @@ Ejecuta este archivo para iniciar la herramienta.
 
 import logging
 import msvcrt
+import os
 from pathlib import Path
 from typing import Any, Dict
 
@@ -80,6 +62,7 @@ def prepare_environment() -> Dict[str, Any]:
 
         init_logging(str(logs_folder))
         colorama.init()
+        os.environ["QT_LOGGING_RULES"] = "qt.qpa.window=false"
 
         return {
             "temp_dir": temp_dir,
@@ -120,6 +103,11 @@ def main() -> None:
         logging.info(
             f"{Fore.GREEN}Entorno preparado correctamente.{Style.RESET_ALL}"
         )
+
+        # Fuerza el vaciado inmediato de buffers de consola y archivo
+        for handler in logging.getLogger().handlers:
+            handler.flush()
+
     except KeyError:
         print(
             "No se pudo preparar el entorno temporal. Presione cualquier "

@@ -169,7 +169,6 @@ Este proyecto está licenciado bajo la [Licencia MIT](LICENSE).
 - [Office Deployment Tool (ODT)](http://aka.ms/ODT)
 - [ttkbootstrap](https://ttkbootstrap.readthedocs.io/)
 - [colorama](https://pypi.org/project/colorama/)
-- [PySide6](https://pypi.org/project/PySide6/)
 
 ---
 

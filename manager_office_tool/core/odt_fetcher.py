@@ -3,85 +3,164 @@ odt_fetcher.py
 
 Funciones y clases para obtener información de descarga del
 Office Deployment Tool (ODT) desde la web oficial de Microsoft.
-Utiliza PySide6 para renderizar páginas dinámicas y requests para
-obtener metadatos del archivo ejecutable.
+Utiliza requests para obtener el HTML y metadatos del archivo ejecutable.
 
 Incluye:
-- Renderizado de páginas web para extraer enlaces de descarga.
-- Obtención de nombre y tamaño del archivo ODT.
-- Cacheo de resultados para eficiencia.
+- Descarga de páginas web estáticas para extraer enlaces de descarga.
+- Obtención de nombre y tamaño del archivo ODT desde las cabeceras HTTP.
+- Cacheo de resultados para eficiencia y límite de tamaño de cache.
+- Validación robusta de dominio, HTTPS y certificado.
 - Solo debe usarse con IDs oficiales de Microsoft para evitar
   riesgos de seguridad.
 """
 
+import ipaddress
 import logging
 import re
+import string
 from pathlib import Path
 from typing import Dict, Optional
 from urllib.parse import urlparse
 
 import requests
-from PySide6.QtCore import QEventLoop, QUrl
-from PySide6.QtWebEngineCore import QWebEnginePage
-from PySide6.QtWidgets import QApplication
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
-# Cache local para evitar renderizar la misma página varias veces
+ALLOWED_DOMAINS = {"download.microsoft.com"}
+ALLOWED_DOMAINS_SUBDOMAINS = {"download.microsoft.com"}
+
+HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/115.0 Safari/537.36"
+    )
+}
+
+MAX_HTML_SIZE = 2 * 1024 * 1024  # 2 MB
+MAX_CACHE_SIZE = 100  # límite arbitrario para evitar crecimiento indefinido
+
+# Cache local para evitar descargar la misma página varias veces, con límite
 _FETCH_CACHE: Dict[str, Dict[str, object]] = {}
 
 
-class WebPage(QWebEnginePage):
+def domain_allowed(hostname: Optional[str]) -> bool:
     """
-    Página web renderizada con PySide6 para obtener el HTML final
-    de páginas dinámicas.
+    Verifica que el hostname sea válido, pertenezca a dominios permitidos,
+    y no sea una IP ni tenga caracteres homoglifos.
+    Permite subdominios explícitos.
     """
+    if not hostname:
+        return False
 
-    def __init__(self, url: str) -> None:
-        self.app = QApplication.instance() or QApplication([])
-        super().__init__()
-        self.html: Optional[str] = None
-        logging.debug(f"[*] WebPage: cargando URL con QWebEngine: {url}")
-        self.loadFinished.connect(self._on_load_finished)
-        self.load(QUrl(url))
-        self.loop = QEventLoop()
-        self.loop.exec_()
+    hostname = hostname.lower()
 
-    def javaScriptConsoleMessage(
-        self, level, message, lineNumber, sourceID, *args
-    ) -> None:
-        location = f"{sourceID or 'desconocido'}:{lineNumber}"
-        if level == 2:
-            logging.error(f"[JS ERROR] {location} - {message}")
-        elif level == 1:
-            logging.warning(f"[JS WARNING] {location} - {message}")
-        else:
-            logging.info(f"[JS INFO] {message}")
-
-    def _on_load_finished(self, ok: bool) -> None:
-        if not ok:
-            logging.error("[!] WebPage: fallo al cargar la página.")
-            self.loop.quit()
-            return
-        logging.debug("[*] WebPage: carga completada, extrayendo HTML...")
-        self.toHtml(self._store_html)
-
-    def _store_html(self, data: Optional[str]) -> None:
-        self.html = data
-        logging.debug(
-            "[*] WebPage: HTML almacenado, saliendo del bucle de eventos."
-        )
-        self.loop.quit()
-
-
-def get_rendered_html(url: str) -> Optional[str]:
-    """
-    Renderiza una página web usando PySide6 y devuelve el HTML final.
-    Solo debe usarse con URLs confiables.
-    """
+    # Validar que no sea IP (IPv4 o IPv6)
     try:
-        page = WebPage(url)
-        return page.html
+        ipaddress.ip_address(hostname)
+        logging.debug(f"[!] hostname es IP, no permitido: {hostname}")
+        return False
+    except ValueError:
+        # No es IP, sigue validando hostname
+        pass
+
+    # Normalizar dominio con idna para evitar homoglifos y unicode confusos
+    try:
+        hostname_idna = hostname.encode("idna").decode("ascii")
     except Exception as e:
-        logging.exception(f"[!] Error al renderizar HTML: {e}")
+        logging.error(
+            f"[!] Error al codificar hostname a idna: {hostname} - {e}"
+        )
+        return False
+
+    # Validar que el dominio sea exactamente uno permitido o un
+    # subdominio autorizado
+    if hostname_idna in ALLOWED_DOMAINS:
+        return True
+
+    # Permitir subdominios de ALLOWED_DOMAINS_SUBDOMAINS
+    for domain in ALLOWED_DOMAINS_SUBDOMAINS:
+        if hostname_idna.endswith("." + domain):
+            return True
+
+    logging.debug(f"[!] Dominio no permitido: {hostname_idna}")
+    return False
+
+
+def sanitize_filename(name: str) -> str:
+    """
+    Sanitiza el nombre del archivo para evitar path traversal y caracteres
+    no válidos. Limita longitud a 255 caracteres y asegura que sea basename
+    (sin separadores). Si queda vacío, retorna un nombre por defecto seguro.
+    """
+    valid_chars = f"-_.() {string.ascii_letters}{string.digits}"
+    filtered = "".join(c for c in name if c in valid_chars).strip()
+
+    # Evitar nombres con separadores de ruta
+    filtered = filtered.replace("/", "").replace("\\", "")
+
+    if not filtered:
+        filtered = "file.exe"
+
+    # Limitar longitud a 255 (suficiente para la mayoría de sistemas)
+    if len(filtered) > 255:
+        filtered = filtered[:255]
+
+    return filtered
+
+
+def get_requests_session() -> requests.Session:
+    """
+    Crea una sesión de requests con reintentos para mejorar robustez.
+    """
+    session = requests.Session()
+    retries = Retry(
+        total=3,
+        backoff_factor=0.5,
+        status_forcelist=[429, 500, 502, 503, 504],
+        allowed_methods=["GET", "HEAD"],
+    )
+    adapter = HTTPAdapter(max_retries=retries)
+    session.mount("https://", adapter)
+    session.mount("http://", adapter)
+    return session
+
+
+def get_page_html(url: str) -> Optional[str]:
+    """
+    Descarga el HTML de una página confiable (Microsoft) usando requests,
+    con límite máximo de tamaño para evitar ataques DoS.
+    """
+    session = get_requests_session()
+
+    try:
+        with session.get(
+            url, headers=HEADERS, timeout=15, stream=True, verify=True
+        ) as response:
+            response.raise_for_status()
+
+            content = []
+            total = 0
+            for chunk in response.iter_content(chunk_size=8192):
+                total += len(chunk)
+                if total > MAX_HTML_SIZE:
+                    logging.error(
+                        "[!] HTML demasiado grande, abortando descarga"
+                    )
+                    return None
+                content.append(chunk)
+
+            # Decodificar con manejo de errores
+            encoding = (
+                response.encoding
+                if response.encoding
+                else response.apparent_encoding
+            )
+            html = b"".join(content).decode(encoding, errors="replace")
+            return html
+
+    except requests.RequestException as e:
+        logging.exception(f"[!] Error al obtener HTML: {e}")
         return None
 
 
@@ -89,52 +168,57 @@ def parse_head(url: str) -> Dict[str, object]:
     """
     Realiza una solicitud HEAD a la URL para obtener cabeceras HTTP,
     extrayendo el nombre y tamaño del archivo. Valida que la URL final
-    pertenezca a un dominio seguro.
+    pertenezca a un dominio seguro y use HTTPS.
     """
     logging.debug(f"[*] parse_head: realizando HEAD a {url}")
-    headers = {
-        "User-Agent": (
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-            "AppleWebKit/537.36 (KHTML, like Gecko) "
-            "Chrome/115.0 Safari/537.36"
-        )
-    }
-    response = requests.head(
-        url, headers=headers, timeout=10, allow_redirects=True
-    )
-    response.raise_for_status()
+    session = get_requests_session()
 
-    # Validación de dominio seguro tras redirecciones
+    try:
+        response = session.head(
+            url, headers=HEADERS, timeout=10, allow_redirects=True, verify=True
+        )
+        response.raise_for_status()
+    except requests.RequestException as e:
+        logging.error(f"[!] Error en HEAD request: {e}")
+        return {}
+
     final_url = response.url
     parsed = urlparse(final_url)
-    if parsed.hostname != "download.microsoft.com":
-        logging.error(
-            f"[!] Redirección a dominio no permitido: {parsed.hostname}"
-        )
-        raise ValueError("Redirección a dominio no permitido")
+
+    if parsed.scheme != "https":
+        logging.error(f"[!] Esquema no permitido: {parsed.scheme}")
+        return {}
+
+    if not domain_allowed(parsed.hostname):
+        logging.error(f"[!] Dominio no permitido: {parsed.hostname}")
+        return {}
 
     size_str = response.headers.get("Content-Length", "0")
-    size = (
-        int(size_str)
-        if isinstance(size_str, str) and size_str.isdigit()
-        else 0
-    )
-    cd = response.headers.get("Content-Disposition", "")
+    size = int(size_str) if size_str.isdigit() else 0
 
+    cd = response.headers.get("Content-Disposition", "")
     if isinstance(cd, bytes):
-        cd = cd.decode("utf-8")
+        try:
+            cd = cd.decode("utf-8")
+        except Exception:
+            cd = ""
 
     match = re.search(r'filename="?([^";]+)', cd)
-    name = match.group(1) if match else Path(urlparse(url).path).name
+    name = (
+        sanitize_filename(match.group(1))
+        if match
+        else sanitize_filename(Path(parsed.path).name)
+    )
+
     logging.debug(f"[*] parse_head: obtenido name={name}, size={size}")
     return {"url": final_url, "name": name, "size": size}
 
 
 def fetch_odt_download_info(download_id: str) -> Optional[Dict[str, object]]:
     """
-    Obtiene la URL, nombre y tamaño del ODT oficial de Microsoft usando PySide6
-    para renderizar la página y extraer la URL del archivo ejecutable.
-    Implementa caching para evitar peticiones repetidas.
+    Obtiene la URL, nombre y tamaño del ODT oficial de Microsoft usando
+    requests para descargar el HTML de la página y extraer la URL del
+    archivo ejecutable. Implementa caching para evitar peticiones repetidas.
 
     Args:
         download_id (str): ID de descarga de Microsoft.
@@ -142,6 +226,10 @@ def fetch_odt_download_info(download_id: str) -> Optional[Dict[str, object]]:
     Returns:
         dict con las claves 'url', 'name' y 'size', o None si falla.
     """
+    if not download_id.isdigit():
+        logging.error("[!] download_id inválido, debe ser numérico")
+        return None
+
     if download_id in _FETCH_CACHE:
         logging.debug(
             f"[*] fetch_odt_download_info: usando cache para id={download_id}"
@@ -152,34 +240,36 @@ def fetch_odt_download_info(download_id: str) -> Optional[Dict[str, object]]:
     logging.debug(
         f"[*] fetch_odt_download_info: cargando página {summary_url}"
     )
-    html = get_rendered_html(summary_url)
+    html = get_page_html(summary_url)
     if not html:
         logging.error(
             f"[!] fetch_odt_download_info: HTML vacío para id={download_id}"
         )
         return None
 
-    # Extrae enlaces .exe del HTML renderizado
-    pattern = r"https://download\.microsoft\.com/[^\"]+\.exe"
+    # Regex más restrictivo para enlaces .exe en download.microsoft.com
+    pattern = r"https://download\.microsoft\.com/[^\"]+?\.exe"
     matches = re.findall(pattern, html)
-    enlaces_unicos = list(dict.fromkeys(matches))  # preserva el orden
+    enlaces_unicos = list(dict.fromkeys(matches))
     logging.debug(
-        "[*] fetch_odt_download_info: "
-        f"encontrados {len(enlaces_unicos)} enlaces .exe"
+        "[*] fetch_odt_download_info: encontrados "
+        f"{len(enlaces_unicos)} enlaces .exe"
     )
 
     if not enlaces_unicos:
         logging.error("[!] No se encontró ningún enlace .exe en la página.")
         return None
 
-    enlace = enlaces_unicos[0]
-    info = parse_head(enlace)
-    if not info or "error" in info:
-        logging.error(
-            "[!] Error en parse_head: "
-            f"{info.get('error') if info else 'Desconocido'}"
-        )
+    # Validar el primer enlace mediante HEAD y datos robustos
+    info = parse_head(enlaces_unicos[0])
+    if not info:
+        logging.error("[!] Error en parse_head, info vacía")
         return None
+
+    # Añadir a cache con control de tamaño máximo
+    if len(_FETCH_CACHE) >= MAX_CACHE_SIZE:
+        # Eliminar ítem arbitrario (el primero) para liberar espacio
+        _FETCH_CACHE.pop(next(iter(_FETCH_CACHE)))
 
     _FETCH_CACHE[download_id] = info
     logging.debug(

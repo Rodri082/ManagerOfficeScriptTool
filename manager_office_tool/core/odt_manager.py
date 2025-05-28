@@ -160,10 +160,8 @@ class ODTManager:
         try:
             for attempt in range(1, max_retries + 1):
                 if self._is_valid_download(exe_path):
-                    logging.info(
-                        f"{Fore.GREEN}"
+                    logging.debug(
                         f"Binario ya descargado y válido: {sanitized_path}"
-                        f"{Style.RESET_ALL}"
                     )
                     break
                 headers = {}
@@ -261,8 +259,9 @@ class ODTManager:
                     logging.error(f"{Fore.RED}{msg}{Style.RESET_ALL}")
                 except PermissionError:
                     msg = (
-                        "[CONSOLE] Permiso denegado al intentar "
-                        "escribir en el disco."
+                        "[CONSOLE] Permiso denegado: "
+                        "Este proceso requiere ejecutar con "
+                        "privilegios de administrador."
                     )
                     logging.error(f"{Fore.RED}{msg}{Style.RESET_ALL}")
                 except OSError as e:

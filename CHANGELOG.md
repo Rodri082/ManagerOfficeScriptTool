@@ -31,10 +31,12 @@ Historial de cambios del proyecto **ManagerOfficeScriptTool**
 - Visualización más precisa y robusta de los datos de cada instalación en consola y logs.
 - Refactor en `OfficeInstallation`: el atributo `product` ahora siempre refleja el valor real del registro, sin sobrescritura accidental.
 
-### 🌐 Descarga de ODT: de Scrapy a PySide6
-- **Eliminado Scrapy**: ahora se utiliza **PySide6** para renderizar la página oficial de Microsoft y extraer la URL, nombre y tamaño del ODT.
-- Eliminadas todas las dependencias y referencias a Scrapy.
-- Mayor robustez ante cambios en la web de Microsoft.
+### 🌐 Descarga de ODT: de Scrapy a requests con Retry de urllib3
+- Reemplazado el uso de Scrapy para obtener los datos de descarga del Office Deployment Tool (ODT).
+- Ahora se utiliza requests con Retry de urllib3 para obtener de forma robusta el HTML desde la página oficial de Microsoft.
+- Se implementó validación estricta de dominios y certificados, sanitización de nombres de archivo y control de tamaño de HTML descargado.
+- Se añadió caché interna con límite de tamaño para evitar solicitudes duplicadas.
+- Eliminada dependencia de Scrapy.
 
 ### 👤 Experiencia de usuario y extensibilidad
 - Mensajes de usuario claros y coloridos en consola y GUI.

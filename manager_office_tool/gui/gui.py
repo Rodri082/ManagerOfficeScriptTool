@@ -59,13 +59,8 @@ class OfficeSelectionWindow:
         """
         if getattr(self, "_already_closed", False):
             return
-        self._already_closed = True
 
-        Messagebox.show_warning(
-            "Instalación de Office cancelada...",
-            title="Advertencia",
-            parent=self.root,
-        )
+        self._already_closed = True
         self.cancelled = True
         self.root.destroy()
 
@@ -250,7 +245,7 @@ class OfficeSelectionWindow:
         de configuración.
         """
         selected_version = self.combo_version.get()
-        bits = self.combo_arch.get()
+        bits = self.arch_var.get()
         selected_language_name = self.combo_language.get()
         remove_msi = self.remove_msi_var.get()
         selected_apps = [
@@ -322,7 +317,7 @@ class OfficeSelectionWindow:
             state="readonly",
             values=list(self.all_apps.keys()),
         )
-        self.combo_version.set("Office Standard 2013")
+        self.combo_version.set(list(self.all_apps.keys())[0])
         self.combo_version.grid(row=1, column=0, sticky="ew", pady=(0, 12))
         self.combo_version.bind("<<ComboboxSelected>>", self.update_apps)
 
@@ -330,25 +325,19 @@ class OfficeSelectionWindow:
         addons_frame.grid(row=2, column=0, sticky="w", pady=(0, 12))
         self.visio_var = tb.BooleanVar(value=False)
         self.project_var = tb.BooleanVar(value=False)
-        self.visio_check = tb.Checkbutton(
-            addons_frame, text="Instalar Visio", variable=self.visio_var
-        )
-        self.visio_check.pack(side="left", padx=(0, 16))
-        self.project_check = tb.Checkbutton(
-            addons_frame, text="Instalar Project", variable=self.project_var
-        )
-        self.project_check.pack(side="left")
 
         options_frame = tb.Frame(frame)
         options_frame.grid(row=3, column=0, sticky="ew", pady=(0, 12))
         tb.Label(options_frame, text="Arquitectura:").grid(
             row=0, column=0, sticky="w"
         )
-        self.combo_arch = tb.Combobox(
-            options_frame, width=8, state="readonly", values=["32", "64"]
-        )
-        self.combo_arch.set("64")
-        self.combo_arch.grid(row=0, column=1, sticky="w", padx=(8, 24))
+        self.arch_var = tb.StringVar(value="64")
+        tb.Radiobutton(
+            options_frame, text="x86", variable=self.arch_var, value="32"
+        ).grid(row=0, column=1, sticky="w", padx=(8, 0))
+        tb.Radiobutton(
+            options_frame, text="x64", variable=self.arch_var, value="64"
+        ).grid(row=0, column=1, sticky="w", padx=(60, 24))
         tb.Label(options_frame, text="Idioma:").grid(
             row=0, column=2, sticky="w"
         )
@@ -357,14 +346,15 @@ class OfficeSelectionWindow:
             width=20,
             state="readonly",
             values=sorted(self.languages.keys()),
+            height=15,
         )
-        self.combo_language.set("Spanish")
+        self.combo_language.set(list(self.languages.keys())[0])
         self.combo_language.grid(row=0, column=3, sticky="w", padx=(8, 0))
 
         self.remove_msi_var = tb.BooleanVar()
         tb.Checkbutton(
             frame,
-            text="Eliminar versiones antiguas (RemoveMSI)",
+            text="Eliminar versiones MSI (RemoveMSI)",
             variable=self.remove_msi_var,
         ).grid(row=4, column=0, sticky="w", pady=(0, 12))
 
@@ -375,12 +365,37 @@ class OfficeSelectionWindow:
         self.frame_apps.grid(row=6, column=0, sticky="ew", pady=(0, 16))
         self.update_apps()
 
+        # Añade los checkboxes de Visio y Project aquí, dentro de frame_apps
+        self.visio_var = tb.BooleanVar(value=False)
+        self.project_var = tb.BooleanVar(value=False)
+        self.visio_check = tb.Checkbutton(
+            self.frame_apps, text="Visio", variable=self.visio_var
+        )
+        self.visio_check.grid(
+            row=100, column=0, sticky="w", pady=3
+        )  # Usa un row alto para que quede al final
+        self.project_check = tb.Checkbutton(
+            self.frame_apps, text="Project", variable=self.project_var
+        )
+        self.project_check.grid(row=101, column=0, sticky="w", pady=3)
+
+        button_frame = tb.Frame(frame)
+        button_frame.grid(row=7, column=0, pady=(8, 0))
+
         tb.Button(
-            frame,
-            text="Instalar Office",
+            button_frame,
+            text="Instalar",
             command=self.install_office,
-            width=24,
-        ).grid(row=7, column=0, pady=(8, 0))
+            width=12,
+        ).pack(side="left", padx=(0, 10))
+
+        tb.Button(
+            button_frame,
+            text="Cancelar",
+            command=self.on_closing,
+            width=12,
+            bootstyle="secondary",  # type: ignore
+        ).pack(side="left")
 
         self.root.update_idletasks()
         w = self.root.winfo_width()

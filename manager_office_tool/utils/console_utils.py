@@ -22,7 +22,8 @@ def ask_yes_no(message: str) -> bool:
         bool: True si la respuesta es afirmativa, False en caso contrario.
     """
     while True:
-        respuesta = input(f"INFO - {message}").strip().lower()
+        print(f"INFO - {message}", end="", flush=True)
+        respuesta = input().strip().lower()
         if respuesta in ("s", "sí", "si"):
             return True
         elif respuesta in ("n", "no"):

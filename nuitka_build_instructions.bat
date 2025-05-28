@@ -109,7 +109,6 @@ py -m nuitka ^
     main.py ^
     --standalone ^
     --enable-plugin=tk-inter ^
-    --enable-plugin=pyside6 ^
     --windows-icon-from-ico=icon.ico ^
     --include-package=manager_office_tool ^
     --include-data-files=./config.yaml=config.yaml ^
@@ -124,7 +123,7 @@ py -m nuitka ^
     --output-dir=build ^
     --output-filename=ManagerOfficeScriptTool.exe ^
     --msvc=latest ^
-    --lto=yes ^
+    --lto=no ^
     --report=build/compilation-report.xml
 
 if errorlevel 1 (
