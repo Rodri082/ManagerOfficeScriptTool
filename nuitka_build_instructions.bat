@@ -112,7 +112,6 @@ py -m nuitka ^
     --windows-icon-from-ico=icon.ico ^
     --include-package=manager_office_tool ^
     --include-data-files=./config.yaml=config.yaml ^
-    --nofollow-import-to=unittest,doctest,types_PyYAML,types_requests ^
     --company-name="Rodri082" ^
     --product-name="ManagerOfficeScriptTool" ^
     --file-version=5.0.0.0 ^
@@ -123,7 +122,7 @@ py -m nuitka ^
     --output-dir=build ^
     --output-filename=ManagerOfficeScriptTool.exe ^
     --msvc=latest ^
-    --lto=no ^
+    --lto=yes ^
     --report=build/compilation-report.xml
 
 if errorlevel 1 (
