@@ -109,20 +109,24 @@ py -m nuitka ^
     main.py ^
     --standalone ^
     --enable-plugin=tk-inter ^
-    --windows-icon-from-ico=icon.ico ^
     --include-package=manager_office_tool ^
     --include-data-files=./config.yaml=config.yaml ^
+    --windows-icon-from-ico=icon.ico ^
     --company-name="Rodri082" ^
     --product-name="ManagerOfficeScriptTool" ^
     --file-version=5.0.0.0 ^
     --product-version=5.0.0.0 ^
     --file-description="Herramienta ManagerOfficeScriptTool" ^
-    --copyright="Licencia MIT © 2024 Rodri082" ^
+    --copyright="Licencia MIT Copyright 2024 Rodri082" ^
     --windows-uac-admin ^
     --output-dir=build ^
     --output-filename=ManagerOfficeScriptTool.exe ^
     --msvc=latest ^
     --lto=yes ^
+    --nofollow-import-to=PIL._webp ^
+    --nofollow-import-to=unittest ^
+    --nofollow-import-to=pytest ^
+    --nofollow-import-to=tests ^
     --report=build/compilation-report.xml
 
 if errorlevel 1 (
