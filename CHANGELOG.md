@@ -46,7 +46,7 @@ Historial de cambios del proyecto **ManagerOfficeScriptTool**
 - Estructura profesional, fácil de mantener, escalar y compartir en GitHub.
 
 ### 📦 Listo para producción y colaboración
-- README.md actualizado: refleja la nueva estructura, dependencias y créditos (PySide6 en lugar de Scrapy).
+- README.md actualizado: refleja la nueva estructura, dependencias y créditos.
 - Recomendaciones para agregar `requirements.txt`, `.gitignore` y carpeta `tests/` para futuras mejoras.
 - Compilación recomendada con Nuitka para ejecutable optimizado y seguro.
 
