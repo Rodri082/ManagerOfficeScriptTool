@@ -77,7 +77,7 @@ ManagerOfficeScriptTool/
 ## 🖥️ Requisitos
 
 - Windows 10 o superior.
-- Python 3.9+ (para desarrollo) o ejecutable standalone.
+- Python 3.13+ (para desarrollo) o ejecutable standalone.
 - Acceso a internet para descargar ODT y actualizaciones.
 
 ---
