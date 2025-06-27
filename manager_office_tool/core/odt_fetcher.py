@@ -1,28 +1,32 @@
 """
 odt_fetcher.py
 
-Funciones y clases para obtener información de descarga del
-Office Deployment Tool (ODT) desde la web oficial de Microsoft.
-Utiliza requests para obtener el HTML y metadatos del archivo ejecutable.
+Módulo para obtener información de descarga del Office Deployment Tool (ODT)
+desde la página oficial de Microsoft.
 
-Incluye:
-- Descarga de páginas web estáticas para extraer enlaces de descarga.
-- Obtención de nombre y tamaño del archivo ODT desde las cabeceras HTTP.
-- Cacheo de resultados para eficiencia y límite de tamaño de cache.
-- Validación robusta de dominio, HTTPS y certificado.
-- Solo debe usarse con IDs oficiales de Microsoft para evitar
-  riesgos de seguridad.
+Este módulo utiliza la biblioteca `requests` para recuperar el HTML de la
+página y obtener metadatos del archivo ejecutable (.exe) de instalación.
+
+Características:
+- Descarga de páginas web estáticas y extracción de enlaces .exe válidos.
+- Obtención de nombre y tamaño del archivo ODT mediante cabeceras HTTP.
+- Caché LRU en memoria para evitar solicitudes repetidas innecesarias.
+- Validación estricta del dominio (solo dominios seguros y permitidos).
+- Solo debe usarse con IDs oficiales de Microsoft para minimizar riesgos
+de seguridad (evita IDs arbitrarios o maliciosos).
 """
 
 import ipaddress
 import logging
 import re
 import string
+from collections import OrderedDict
 from pathlib import Path
 from typing import Dict, Optional
 from urllib.parse import urlparse
 
 import requests
+from lxml import html
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
@@ -40,8 +44,8 @@ HEADERS = {
 MAX_HTML_SIZE = 2 * 1024 * 1024  # 2 MB
 MAX_CACHE_SIZE = 100  # límite arbitrario para evitar crecimiento indefinido
 
-# Cache local para evitar descargar la misma página varias veces, con límite
-_FETCH_CACHE: Dict[str, Dict[str, object]] = {}
+# Caché LRU para evitar descargar la misma página varias veces, con límite
+_FETCH_CACHE: OrderedDict[str, Dict[str, object]] = OrderedDict()
 
 
 def domain_allowed(hostname: Optional[str]) -> bool:
@@ -156,8 +160,8 @@ def get_page_html(url: str) -> Optional[str]:
                 if response.encoding
                 else response.apparent_encoding
             )
-            html = b"".join(content).decode(encoding, errors="replace")
-            return html
+            html_content = b"".join(content).decode(encoding, errors="replace")
+            return html_content
 
     except requests.RequestException as e:
         logging.exception(f"[!] Error al obtener HTML: {e}")
@@ -214,66 +218,106 @@ def parse_head(url: str) -> Dict[str, object]:
     return {"url": final_url, "name": name, "size": size}
 
 
+def get_from_cache(key: str) -> Optional[Dict[str, object]]:
+    if key in _FETCH_CACHE:
+        _FETCH_CACHE.move_to_end(key)  # Marca como más reciente
+        return _FETCH_CACHE[key]
+    return None
+
+
+def add_to_cache(key: str, value: Dict[str, object]) -> None:
+    _FETCH_CACHE[key] = value
+    _FETCH_CACHE.move_to_end(key)  # Marca como más reciente
+    if len(_FETCH_CACHE) > MAX_CACHE_SIZE:
+        _FETCH_CACHE.popitem(last=False)  # Elimina menos recientemente usado
+
+
 def fetch_odt_download_info(download_id: str) -> Optional[Dict[str, object]]:
     """
-    Obtiene la URL, nombre y tamaño del ODT oficial de Microsoft usando
-    requests para descargar el HTML de la página y extraer la URL del
-    archivo ejecutable. Implementa caching para evitar peticiones repetidas.
+    Obtiene metadatos del instalador del Office Deployment Tool (ODT)
+    desde la página oficial de Microsoft a partir de un `download_id`.
+
+    Realiza las siguientes acciones:
+    - Descarga la página HTML correspondiente al ID usando `requests`.
+    - Extrae el primer enlace válido a `.exe` desde `download.microsoft.com`.
+    - Valida el dominio, protocolo HTTPS y cabeceras.
+    - Realiza una solicitud HEAD para obtener nombre y tamaño del archivo.
+    - Almacena resultados en caché local para evitar peticiones repetidas.
+
+    La caché solo vive durante la ejecución del proceso (no persistente).
 
     Args:
-        download_id (str): ID de descarga de Microsoft.
+        download_id (str): ID numérico oficial del ODT de Microsoft.
+            Ejemplo: "49117"
 
     Returns:
-        dict con las claves 'url', 'name' y 'size', o None si falla.
+        Optional[Dict[str, object]]: Diccionario con las claves:
+            - 'url'  (str): Enlace directo al ejecutable .exe.
+            - 'name' (str): Nombre limpio del archivo.
+            - 'size' (int): Tamaño en bytes del archivo.
+        Devuelve None si ocurre un error o si el ID no es válido.
     """
+
     if not download_id.isdigit():
         logging.error("[!] download_id inválido, debe ser numérico")
         return None
 
-    if download_id in _FETCH_CACHE:
+    cached = get_from_cache(download_id)
+    if cached:
         logging.debug(
             f"[*] fetch_odt_download_info: usando cache para id={download_id}"
         )
-        return _FETCH_CACHE[download_id]
+        return cached
 
     summary_url = f"https://www.microsoft.com/en-us/download/details.aspx?id={download_id}"  # noqa: E501
     logging.debug(
         f"[*] fetch_odt_download_info: cargando página {summary_url}"
     )
-    html = get_page_html(summary_url)
-    if not html:
+    html_content = get_page_html(summary_url)
+    if not html_content:
         logging.error(
             f"[!] fetch_odt_download_info: HTML vacío para id={download_id}"
         )
         return None
 
-    # Regex más restrictivo para enlaces .exe en download.microsoft.com
-    pattern = r"https://download\.microsoft\.com/[^\"]+?\.exe"
-    matches = re.findall(pattern, html)
-    enlaces_unicos = list(dict.fromkeys(matches))
-    logging.debug(
-        "[*] fetch_odt_download_info: encontrados "
-        f"{len(enlaces_unicos)} enlaces .exe"
-    )
+    try:
+        tree = html.fromstring(html_content)
+        # Buscar todos los enlaces <a> con href que terminen en .exe
+        # y en dominio permitido
+        links = tree.xpath("//a[@href]")
+        exe_links = []
+        for link in links:
+            href = link.get("href")
+            if href and href.lower().endswith(".exe"):
+                parsed = urlparse(href)
+                if parsed.scheme in ("http", "https") and domain_allowed(
+                    parsed.hostname
+                ):
+                    exe_links.append(href)
+
+        # Eliminar duplicados manteniendo orden
+        enlaces_unicos = list(dict.fromkeys(exe_links))
+        logging.debug(
+            "[*] fetch_odt_download_info: encontrados "
+            f"{len(enlaces_unicos)} enlaces .exe"
+        )
+
+    except Exception as e:
+        logging.error(f"[!] Error al parsear HTML con lxml: {e}")
+        return None
 
     if not enlaces_unicos:
         logging.error("[!] No se encontró ningún enlace .exe en la página.")
         return None
 
-    # Validar el primer enlace mediante HEAD y datos robustos
     info = parse_head(enlaces_unicos[0])
     if not info:
         logging.error("[!] Error en parse_head, info vacía")
         return None
 
-    # Añadir a cache con control de tamaño máximo
-    if len(_FETCH_CACHE) >= MAX_CACHE_SIZE:
-        # Eliminar ítem arbitrario (el primero) para liberar espacio
-        _FETCH_CACHE.pop(next(iter(_FETCH_CACHE)))
-
-    _FETCH_CACHE[download_id] = info
+    add_to_cache(download_id, info)
     logging.debug(
-        "[*] fetch_odt_download_info: "
-        f"info almacenada para id={download_id} -> {info}"
+        "[*] fetch_odt_download_info: info almacenada para id="
+        f"{download_id} -> {info}"
     )
     return info

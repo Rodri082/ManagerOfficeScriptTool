@@ -26,7 +26,12 @@ class OfficeInstaller:
             (solo para mostrar en logs).
     """
 
-    def __init__(self, office_install_dir: str, selected_version: str) -> None:
+    def __init__(
+        self,
+        office_install_dir: str,
+        selected_version: str,
+        selected_language_id: str,
+    ) -> None:
         """
         Inicializa la instancia con la ruta de instalación de Office.
 
@@ -37,6 +42,7 @@ class OfficeInstaller:
         """
         self.office_install_dir = office_install_dir
         self.selected_version = selected_version
+        self.selected_language_id = selected_language_id
 
     def run_setup_commands(self) -> None:
         """
@@ -74,7 +80,8 @@ class OfficeInstaller:
         try:
             logging.info(
                 f"{Fore.YELLOW}"
-                f"Instalando Microsoft {self.selected_version}. "
+                f"Instalando Microsoft {self.selected_version} "
+                f"({self.selected_language_id}). "
                 "Por favor, no cierre esta ventana..."
                 f"{Style.RESET_ALL}"
             )

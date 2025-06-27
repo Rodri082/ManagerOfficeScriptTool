@@ -241,97 +241,97 @@ office_apps:
 # Clave: nombre visible, Valor: código de idioma usado en el XML de configuración.
 languages:
   Afrikaans: af-ZA
-  Albanian: sq-AL
-  Arabic: ar-SA
-  Armenian: hy-AM
-  Assamese: as-IN
-  Azerbaijani (Latin): az-Latn-AZ
-  Bangla (Bangladesh): bn-BD
-  Bangla (Bengali India): bn-IN
-  Basque (Basque): eu-ES
-  Bosnian (Latin): bs-latn-BA
-  Bulgarian: bg-BG
-  Catalan: ca-ES
-  Catalan (Valencia): ca-ES-valencia
-  Chinese (Simplified): zh-CN
-  Chinese (Traditional): zh-TW
-  Croatian: hr-HR
-  Czech: cs-CZ
-  Danish: da-DK
-  Dutch: nl-NL
-  English: en-US
-  English UK: en-GB
-  Estonian: et-EE
-  Finnish: fi-FI
-  French: fr-FR
-  French Canada: fr-CA
-  Galician: gl-ES
-  Georgian: ka-GE
-  German: de-DE
-  Greek: el-GR
-  Gujarati: gu-IN
+  Albanés: sq-AL
+  Árabe: ar-SA
+  Armenio: hy-AM
+  Asamés: as-IN
+  Azerbaiyano (Latino): az-Latn-AZ
+  Bengalí (Bangladesh): bn-BD
+  Bengalí (India): bn-IN
+  Vasco: eu-ES
+  Bosnio (Latino): bs-latn-BA
+  Búlgaro: bg-BG
+  Catalán: ca-ES
+  Catalán (Valencia): ca-ES-valencia
+  Chino (Simplificado): zh-CN
+  Chino (Tradicional): zh-TW
+  Croata: hr-HR
+  Checo: cs-CZ
+  Danés: da-DK
+  Neerlandés: nl-NL
+  Inglés: en-US
+  Inglés (Reino Unido): en-GB
+  Estonio: et-EE
+  Finés: fi-FI
+  Francés: fr-FR
+  Francés (Canadá): fr-CA
+  Gallego: gl-ES
+  Georgiano: ka-GE
+  Alemán: de-DE
+  Griego: el-GR
+  Guyaratí: gu-IN
   Hausa: ha-Latn-NG
-  Hebrew: he-IL
+  Hebreo: he-IL
   Hindi: hi-IN
-  Hungarian: hu-HU
-  Icelandic: is-IS
+  Húngaro: hu-HU
+  Islandés: is-IS
   Igbo: ig-NG
-  Indonesian: id-ID
-  Irish: ga-IE
-  isiXhosa: xh-ZA
-  isiZulu: zu-ZA
-  Italian: it-IT
-  Japanese: ja-JP
-  Kannada: kn-IN
-  Kazakh: kk-KZ
+  Indonesio: id-ID
+  Irlandés: ga-IE
+  Xhosa: xh-ZA
+  Zulú: zu-ZA
+  Italiano: it-IT
+  Japonés: ja-JP
+  Canarés: kn-IN
+  Kazajo: kk-KZ
   Kinyarwanda: rw-RW
-  KiSwahili: sw-KE
+  Suajili: sw-KE
   Konkani: kok-IN
-  Korean: ko-KR
-  Kyrgyz: ky-KG
-  Latvian: lv-LV
-  Lithuanian: lt-LT
-  Luxembourgish: lb-LU
-  Macedonian (North Macedonia): mk-MK
-  Malay (Latin): ms-MY
+  Coreano: ko-KR
+  Kirguís: ky-KG
+  Letón: lv-LV
+  Lituano: lt-LT
+  Luxemburgués: lb-LU
+  Macedonio (Macedonia del Norte): mk-MK
+  Malayo (Latino): ms-MY
   Malayalam: ml-IN
-  Maltese: mt-MT
-  Maori: mi-NZ
-  Marathi: mr-IN
-  Nepali: ne-NP
-  Norwegian Bokmål: nb-NO
-  Norwegian Nynorsk: nn-NO
+  Maltés: mt-MT
+  Maorí: mi-NZ
+  Maratí: mr-IN
+  Nepalí: ne-NP
+  Noruego Bokmål: nb-NO
+  Noruego Nynorsk: nn-NO
   Odia: or-IN
-  Pashto: ps-AF
-  Persian: fa-IR
-  Polish: pl-PL
-  Portuguese (Portugal): pt-PT
-  Portuguese (Brazil): pt-BR
-  Punjabi (Gurmukhi): pa-IN
-  Romanian: ro-RO
-  Romansh: rm-CH
-  Russian: ru-RU
-  Scottish Gaelic: gd-GB
-  Serbian (Cyrillic, Serbia): sr-cyrl-RS
-  Serbian (Latin, Serbia): sr-latn-RS
-  Serbian (Cyrillic, Bosnia & Herzegovina): sr-cyrl-BA
+  Pastún: ps-AF
+  Persa: fa-IR
+  Polaco: pl-PL
+  Portugués (Portugal): pt-PT
+  Portugués (Brasil): pt-BR
+  Panyabí (Gurmukhi): pa-IN
+  Rumano: ro-RO
+  Romanche: rm-CH
+  Ruso: ru-RU
+  Gaélico escocés: gd-GB
+  Serbio (Cirílico, Serbia): sr-cyrl-RS
+  Serbio (Latino, Serbia): sr-latn-RS
+  Serbio (Cirílico, Bosnia y Herzegovina): sr-cyrl-BA
   Sesotho sa Leboa: nso-ZA
-  Setswana: tn-ZA
-  Sinhala: si-LK
-  Slovak: sk-SK
-  Slovenian: sl-SI
-  Spanish: es-ES
-  Spanish Mexico: es-MX
-  Swedish: sv-SE
+  Setsuana: tn-ZA
+  Cingalés: si-LK
+  Eslovaco: sk-SK
+  Esloveno: sl-SI
+  Español: es-ES
+  Español (México): es-MX
+  Sueco: sv-SE
   Tamil: ta-IN
-  Tatar (Cyrillic): tt-RU
+  Tártaro (Cirílico): tt-RU
   Telugu: te-IN
-  Thai: th-TH
-  Turkish: tr-TR
-  Ukrainian: uk-UA
+  Tailandés: th-TH
+  Turco: tr-TR
+  Ucraniano: uk-UA
   Urdu: ur-PK
-  Uzbek (Latin): uz-Latn-UZ
-  Vietnamese: vi-VN
-  Welsh: cy-GB
+  Uzbeko (Latino): uz-Latn-UZ
+  Vietnamita: vi-VN
+  Galés: cy-GB
   Wolof: wo-SN
   Yoruba: yo-NG

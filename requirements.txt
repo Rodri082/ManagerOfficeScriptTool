@@ -5,3 +5,4 @@ ttkbootstrap
 PyYAML
 requests
 tqdm
+lxml

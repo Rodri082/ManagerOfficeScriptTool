@@ -25,7 +25,7 @@ class OfficeManager:
     Args:
         show_all (bool): Si es True, muestra todas las instalaciones
                             encontradas.
-                         Si es False, solo muestra instalaciones de Office,
+                        Si es False, solo muestra instalaciones de Office,
                             365, Project o Visio.
     """
 
@@ -222,16 +222,19 @@ class OfficeManager:
                 f"{Style.RESET_ALL}"
             )
             office_info = {
-                "IsClickToRun": install.click_to_run,
-                "InstallPath": install.install_path,
-                "ProductID": install.product,
-                "IsUpdatesEnabled": install.updates_enabled,
-                "UpdateChannelUrl": install.update_url,
-                "MediaType": install.media_type,
+                "Es Click-to-Run": install.click_to_run,
+                "Ruta de instalación": install.install_path,
+                "ID de producto": install.product,
+                "Actualizaciones habilitadas": install.updates_enabled,
+                "URL (canal de actualizaciones)": install.update_url,
+                "Origen de instalación": install.media_type,
             }
             for key, value in office_info.items():
+                key_width = 32
+                spaces = max(key_width - len(key) - 1, 1)
                 logging.info(
-                    f"{Fore.LIGHTWHITE_EX}{key:<18}: "
+                    f"{Fore.LIGHTWHITE_EX}{key}:"
+                    f"{' ' * spaces}"
                     f"{str(value)}{Style.RESET_ALL}"
                 )
             logging.info(f"{Fore.CYAN}{'-' * 80}{Style.RESET_ALL}")

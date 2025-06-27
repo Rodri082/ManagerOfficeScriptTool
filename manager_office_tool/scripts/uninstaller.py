@@ -7,7 +7,11 @@ de errores.
 """
 
 import logging
+import re
 import subprocess
+import xml.dom.minidom as minidom
+import xml.etree.ElementTree as ET
+from itertools import groupby
 from pathlib import Path
 from typing import List, Optional
 
@@ -32,19 +36,19 @@ class OfficeUninstaller:
     def __init__(
         self,
         office_uninstall_dir: str,
-        installation: OfficeInstallation,
+        installations: List[OfficeInstallation],
         odt_manager: Optional[ODTManager] = None,
     ) -> None:
         self.office_uninstall_dir = office_uninstall_dir
-        self.installation = installation
-        self.setup_path: Path | None = None
+        self.installations = installations
+        self.setup_path: Optional[Path] = None
         self.odt_manager = odt_manager or ODTManager(office_uninstall_dir)
 
         logging.debug(
-            "[*] Inicializando OfficeUninstaller para: "
-            f"{self.installation.name} | "
-            f"Product: {self.installation.product} | "
-            f"Idioma: {self.installation.client_culture}"
+            "[*] Inicializando OfficeUninstaller para grupo: "
+            f"{self.installations[0].name} | "
+            f"Product: {self.installations[0].product} | "
+            f"Idiomas: {[i.client_culture for i in self.installations]}"
         )
 
     def _generar_configuracion_remocion(self) -> str:
@@ -55,20 +59,26 @@ class OfficeUninstaller:
         Returns:
             str: Ruta del archivo de configuración generado.
         """
-        xml_content = f"""\
-<Configuration>
-  <Remove>
-    <Product ID="{self.installation.product}">
-      <Language ID="{self.installation.client_culture}" />
-    </Product>
-  </Remove>
-  <Display Level="None" AcceptEULA="TRUE" />
-</Configuration>"""
+        configuration = ET.Element("Configuration")
+        remove = ET.SubElement(configuration, "Remove")
 
+        base_product = self.installations[0].product
+        product = ET.SubElement(remove, "Product", ID=base_product)
+
+        for inst in self.installations:
+            culture = normalize_culture(inst.client_culture)
+            ET.SubElement(product, "Language", ID=culture)
+
+        ET.SubElement(
+            configuration, "Display", Level="None", AcceptEULA="TRUE"
+        )
+
+        # Paths
         uninstall_dir = Path(self.office_uninstall_dir)
         file_path = Path(self.odt_manager.office_dir) / "configuration.xml"
         sanitized_uninstall_path = safe_log_path(uninstall_dir)
         sanitized_file_path = safe_log_path(file_path)
+
         try:
             uninstall_dir.mkdir(parents=True, exist_ok=True)
         except PermissionError:
@@ -80,7 +90,12 @@ class OfficeUninstaller:
             raise
 
         try:
-            file_path.write_text(xml_content, encoding="utf-8")
+            rough_string = ET.tostring(configuration, encoding="utf-8")
+            pretty_xml = minidom.parseString(rough_string).toprettyxml(
+                indent="  ", encoding="utf-8"
+            )
+
+            file_path.write_bytes(pretty_xml)
             logging.debug(
                 "[*] Archivo de configuración XML de desinstalación "
                 f"generado en: {sanitized_file_path}"
@@ -101,18 +116,18 @@ class OfficeUninstaller:
         Returns:
             bool: True si la desinstalación fue exitosa, False si falló.
         """
-        version_identifier = self.installation.name
+        base_name = get_base_name(self.installations[0].name)
+        idiomas = " / ".join(
+            normalize_culture(inst.client_culture)
+            for inst in self.installations
+        )
 
         logging.info(
             f"{Fore.GREEN}"
-            f"Iniciando proceso de desinstalación para: {version_identifier}"
+            "Iniciando proceso de desinstalación para: "
+            f"{base_name} - {idiomas}"
             f"{Style.RESET_ALL}"
         )
-
-        if not self.odt_manager.download_and_extract(version_identifier):
-            msg = "[CONSOLE] Fallo la descarga o extracción del ODT."
-            logging.error(f"{Fore.RED}{msg}{Style.RESET_ALL}")
-            return False
 
         office_uninstall_path = Path(self.odt_manager.office_dir)
         self.setup_path = office_uninstall_path / "setup.exe"
@@ -144,13 +159,15 @@ class OfficeUninstaller:
                 f"{Style.RESET_ALL}"
             )
 
-            subprocess.run(
+            result = subprocess.run(
                 [str(self.setup_path), "/configure", config_path],
                 cwd=str(office_uninstall_path),
                 capture_output=True,
                 text=True,
                 check=True,
             )
+
+            logging.debug(f"setup.exe stdout:\n{result.stdout}")
 
             return True
 
@@ -175,22 +192,44 @@ class OfficeUninstaller:
         """
         try:
             if self.ejecutar_desinstalacion():
+                base_name = get_base_name(self.installations[0].name)
+                idiomas = " / ".join(
+                    inst.client_culture for inst in self.installations
+                )
                 return (
                     f"{Fore.GREEN}"
-                    f"Desinstalado exitosamente: {self.installation.name}"
+                    f"Desinstalado exitosamente: {base_name} - {idiomas}"
                     f"{Style.RESET_ALL}"
                 )
             else:
-                return f"{Fore.RED}Error al desinstalar: {self.installation.name}{Style.RESET_ALL}"  # noqa E501
+                return f"{Fore.RED}Error al desinstalar: {self.installations[0].name}{Style.RESET_ALL}"  # noqa E501
         except Exception as e:
             logging.exception(
-                f"Excepción en 'execute()' para {self.installation.name}: {e}"
+                "Excepción en 'execute()' para "
+                f"{self.installations[0].name}: {e}"
             )
             return (
                 f"{Fore.RED}"
-                f"Falló inesperadamente: {self.installation.name}"
+                f"Falló inesperadamente: {self.installations[0].name}"
                 f"{Style.RESET_ALL}"
             )
+
+
+def get_base_name(name: str) -> str:
+    # Esto quita el código de idioma al final en formato " - xx-xx"
+    return re.sub(r"\s-\s[a-z]{2}-[a-z]{2}$", "", name)
+
+
+def normalize_culture(culture: str) -> str:
+    """
+    Normaliza el código de cultura al formato xx-XX:
+    - idioma en minúsculas
+    - región en mayúsculas
+    """
+    culture = culture.strip()
+    if len(culture) == 5 and culture[2] == "-":
+        return culture[:2].lower() + "-" + culture[3:].upper()
+    return culture.lower()
 
 
 def run_uninstallers(
@@ -205,28 +244,31 @@ def run_uninstallers(
                                                     desinstalar.
         uninstall_dir (Path): Directorio temporal para ODT.
     """
-    total = len(installations)
-
     logging.info(
         f"{Fore.LIGHTCYAN_EX}"
-        f"Iniciando desinstalación de {total} instalación(es)...\n"
+        f"Iniciando desinstalación de {len(installations)} instalación(es)..."
         f"{Style.RESET_ALL}"
     )
 
     odt_managers: dict[str, ODTManager] = {}
 
-    for idx, inst in enumerate(installations, start=1):
+    # Primero ordenar para agrupar correctamente
+    installations.sort(key=lambda x: (get_base_name(x.name), x.product))
+
+    for (base_name, product), group in groupby(
+        installations, key=lambda x: (get_base_name(x.name), x.product)
+    ):
+        group_list = list(group)
+
         logging.info(
             f"{Fore.LIGHTYELLOW_EX}"
-            f"[{idx}/{total}] Desinstalando: {inst.name}"
+            f"Desinstalando grupo: {base_name} - ({len(group_list)} "
+            f"idioma(s))"
             f"{Style.RESET_ALL}"
         )
         logging.info(f"{Fore.LIGHTCYAN_EX}{'-' * 110}{Style.RESET_ALL}")
-        # Determina la familia según el nombre: 2013 o moderno (2016+)
-        familia = "2013" if "2013" in inst.name else "Modern"
 
-        # Si es la primera vez que vemos esta familia, creamos y
-        # descargamos ODT
+        familia = "2013" if "2013" in base_name else "Modern"
         if familia not in odt_managers:
             odt_dir = uninstall_dir / f"OfficeODT_{familia}"
             manager = ODTManager(str(odt_dir))
@@ -240,20 +282,17 @@ def run_uninstallers(
             if not manager.download_and_extract(familia):
                 msg = f"[CONSOLE] Error al preparar ODT para familia {familia}"
                 logging.error(f"{Fore.RED}{msg}{Style.RESET_ALL}")
-                return
+                continue
 
-        # Reutilizamos el manager cacheado para esta instalación
         uninstaller = OfficeUninstaller(
-            str(uninstall_dir), inst, odt_managers[familia]
+            str(uninstall_dir), group_list, odt_managers[familia]
         )
 
         try:
-            # Ejecuta la desinstalación con el manager cacheado
             result = uninstaller.execute()
             logging.info(result)
         except Exception as e:
-            msg = f"[CONSOLE] Error al desinstalar {inst.name}: {e}"
+            msg = f"[CONSOLE] Error al desinstalar {base_name}: {e}"
             logging.error(f"{Fore.RED}{msg}{Style.RESET_ALL}")
 
-        # Separador visual entre instalaciones
         logging.info(f"{Fore.LIGHTCYAN_EX}{'-' * 110}{Style.RESET_ALL}")

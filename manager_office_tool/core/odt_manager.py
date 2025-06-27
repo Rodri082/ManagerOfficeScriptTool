@@ -103,11 +103,19 @@ class ODTManager:
         Verifica si el archivo descargado es válido según nombre y
         tamaño esperados.
         """
-        return (
-            path.exists()
-            and self.expected_name == path.name
+        if not path.exists():
+            return False
+        valid = (
+            self.expected_name == path.name
             and path.stat().st_size == self.expected_size
         )
+        if not valid:
+            logging.debug(
+                f"Archivo no válido: esperado '{self.expected_name}' "
+                f"({self.expected_size} bytes), recibido '{path.name}' "
+                f"({path.stat().st_size} bytes)"
+            )
+        return valid
 
     def download_and_extract(
         self, version_identifier: str, max_retries: int = 5
@@ -169,9 +177,38 @@ class ODTManager:
                     tmp_path.stat().st_size if tmp_path.exists() else 0
                 )
                 if downloaded:
-                    head = session.head(url)
-                    if head.headers.get("Accept-Ranges") == "bytes":
-                        headers["Range"] = f"bytes={downloaded}-"
+                    try:
+                        head = session.head(url, timeout=(3, 10))
+                        accept_ranges = head.headers.get(
+                            "Accept-Ranges", ""
+                        ).lower()
+                        if accept_ranges == "bytes":
+                            headers["Range"] = f"bytes={downloaded}-"
+                        else:
+                            logging.warning(
+                                f"{Fore.YELLOW}"
+                                "El servidor no permite reanudar descargas "
+                                "(sin Accept-Ranges). "
+                                "Eliminando archivo temporal para comenzar "
+                                "desde cero."
+                                f"{Style.RESET_ALL}"
+                            )
+                            try:
+                                tmp_path.unlink()
+                                downloaded = 0
+                            except OSError:
+                                logging.warning(
+                                    f"{Fore.YELLOW}"
+                                    "No se pudo eliminar el archivo temporal: "
+                                    f"{safe_log_path(tmp_path)}"
+                                    f"{Style.RESET_ALL}"
+                                )
+                    except requests.RequestException as e:
+                        logging.warning(
+                            f"{Fore.YELLOW}"
+                            "Error al verificar soporte de reanudación: "
+                            f"{e}{Style.RESET_ALL}"
+                        )
 
                 logging.info(
                     f"{Fore.GREEN}"
@@ -207,6 +244,10 @@ class ODTManager:
                     logging.debug(
                         "[*] Archivo descargado exitosamente en: "
                         f"{sanitized_path}"
+                    )
+                    logging.debug(
+                        f"Tamaño esperado: {self.expected_size} bytes, "
+                        f"tamaño real: {exe_path.stat().st_size} bytes"
                     )
 
                     if self._is_valid_download(exe_path):

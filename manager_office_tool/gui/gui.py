@@ -9,7 +9,10 @@ Utiliza ttkbootstrap para una GUI moderna y mensajes claros.
 """
 
 import logging
+import xml.dom.minidom as minidom
+import xml.etree.ElementTree as ET
 from pathlib import Path
+from typing import Optional, Tuple
 
 import ttkbootstrap as tb
 import yaml
@@ -168,14 +171,10 @@ class OfficeSelectionWindow:
             "Project": project_id,
         }
 
+        # Excluye las aplicaciones seleccionadas de la lista de disponibles
         available_apps = set(self.all_apps.get(selected_version, []))
         selected_apps_set = set(selected_apps)
-        # Excluye las aplicaciones no seleccionadas usando el
-        # bloque <ExcludeApp>
         excluded_apps = available_apps - selected_apps_set
-        exclude_apps_block = "\n".join(
-            f'      <ExcludeApp ID="{app}" />' for app in sorted(excluded_apps)
-        )
 
         # Determina los productos a instalar según la selección del usuario
         products = ["Office"]
@@ -184,48 +183,58 @@ class OfficeSelectionWindow:
         if "Project" in selected_apps:
             products.append("Project")
 
-        product_blocks = []
+        configuration = ET.Element("Configuration")
+        add = ET.SubElement(
+            configuration,
+            "Add",
+            {
+                "OfficeClientEdition": bits,
+                "Channel": self.versiones[selected_version]["channel"],
+            },
+        )
+
         for product in products:
-            product_id = PRODUCT_IDS[product]
-            if product == "Office" and exclude_apps_block:
-                product_block = (
-                    f'    <Product ID="{product_id}">\n'
-                    f'      <Language ID="{language_id}" />\n'
-                    f"{exclude_apps_block}\n"
-                    f"    </Product>"
-                )
-            else:
-                product_block = (
-                    f'    <Product ID="{product_id}">\n'
-                    f'      <Language ID="{language_id}" />\n'
-                    f"    </Product>"
-                )
-            product_blocks.append(product_block)
+            product_elem = ET.SubElement(
+                add, "Product", {"ID": PRODUCT_IDS[product]}
+            )
+            ET.SubElement(product_elem, "Language", {"ID": language_id})
+            if product == "Office":
+                for app in sorted(excluded_apps):
+                    ET.SubElement(product_elem, "ExcludeApp", {"ID": app})
 
-        remove_msi_tag = "\n  <RemoveMSI />" if remove_msi else ""
+        ET.SubElement(
+            configuration,
+            "Property",
+            {"Name": "FORCEAPPSHUTDOWN", "Value": "TRUE"},
+        )
+        ET.SubElement(
+            configuration, "Property", {"Name": "AUTOACTIVATE", "Value": "1"}
+        )
+        ET.SubElement(configuration, "Updates", {"Enabled": "TRUE"})
 
-        # Genera el bloque XML de configuración con los productos y
-        # apps seleccionados
-        config = f"""\
-<Configuration>
-  <Add OfficeClientEdition="{bits}" Channel="{self.versiones[selected_version]['channel']}">
-{"\n".join(product_blocks)}
-  </Add>
-  <Property Name="FORCEAPPSHUTDOWN" Value="TRUE" />
-  <Property Name="AUTOACTIVATE" Value="1" />
-  <Updates Enabled="TRUE" />{remove_msi_tag}
-  <Display Level="Full" AcceptEULA="TRUE" />
-</Configuration>"""  # noqa: E501
+        if remove_msi:
+            ET.SubElement(configuration, "RemoveMSI")
+
+        ET.SubElement(
+            configuration, "Display", {"Level": "Full", "AcceptEULA": "TRUE"}
+        )
 
         config_file_path = install_subdir / "configuration.xml"
         try:
-            config_file_path.write_text(config, encoding="utf-8")
+            rough_string = ET.tostring(configuration, encoding="utf-8")
+            reparsed = minidom.parseString(rough_string)
+            pretty_xml = reparsed.toprettyxml(indent="  ", encoding="utf-8")
+
+            config_file_path.write_bytes(pretty_xml)
+
             logging.debug(
                 "[*] Archivo de configuración generado exitosamente en: "
                 f"{safe_log_path(config_file_path)}"
             )
             self.install_subdir_path = install_subdir
             self.selected_version = selected_version
+            self.selected_language_id = selected_language_name
+
             return str(install_subdir)
         except Exception as e:
             msg = "[CONSOLE] Error al escribir configuration.xml"
@@ -288,7 +297,7 @@ class OfficeSelectionWindow:
             selected_apps,
         )
 
-    def show(self) -> tuple[str | None, str | None]:
+    def show(self) -> Tuple[Optional[str], Optional[str], Optional[str]]:
         """
         Muestra la ventana de selección de Office con todos los
         componentes gráficos.
@@ -410,7 +419,8 @@ class OfficeSelectionWindow:
             (
                 str(self.install_subdir_path),
                 getattr(self, "selected_version", None),
+                getattr(self, "selected_language_id", None),
             )
             if not self.cancelled
-            else (None, None)
+            else (None, None, None)
         )

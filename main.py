@@ -12,7 +12,7 @@ El flujo principal es:
 1. Detectar instalaciones existentes de Office.
 2. Ofrecer al usuario la opción de desinstalar versiones encontradas.
 3. Permitir la configuración e instalación de una nueva versión de Office
-   mediante GUI.
+mediante GUI.
 4. Gestionar errores y limpiar archivos temporales al finalizar.
 
 Notas de seguridad:
@@ -40,6 +40,9 @@ from manager_office_tool import (
     OfficeInstaller,
     OfficeManager,
     OfficeSelectionWindow,
+    ask_menu_option,
+    ask_multiple_valid_indices,
+    ask_single_valid_index,
     ask_yes_no,
     clean_temp_folders_ui,
     ensure_subfolder,
@@ -169,13 +172,22 @@ def main() -> None:
                         "3 - Elegir una versión específica para desinstalar"
                         f"{Style.RESET_ALL}"
                     )
-                    opcion = input(
-                        f"{Fore.LIGHTCYAN_EX}"
-                        "Opción (1/2/3): "
+                    logging.info(
+                        f"{Fore.LIGHTWHITE_EX}"
+                        "4 - Elegir múltiples versiones para desinstalar"
                         f"{Style.RESET_ALL}"
-                    ).strip()
+                    )
 
-                    if opcion == "2":
+                    opcion = ask_menu_option({"1", "2", "3", "4"}, "Opción")
+
+                    if opcion == "1":
+                        logging.info(
+                            f"{Fore.YELLOW}"
+                            "No se realizará ninguna desinstalación."
+                            f"{Style.RESET_ALL}"
+                        )
+
+                    elif opcion == "2":
                         office_uninstall_dir = ensure_subfolder(
                             temp_dir, "UninstallOfficeFiles"
                         )
@@ -194,19 +206,22 @@ def main() -> None:
                                 f"{Style.RESET_ALL}"
                             )
 
-                        seleccion = input(
-                            f"{Fore.LIGHTCYAN_EX}"
-                            "Ingrese el número de la versión a desinstalar: "
-                            f"{Style.RESET_ALL}"
-                        ).strip()
-                        if seleccion.isdigit() and 1 <= int(seleccion) <= len(
-                            installations
-                        ):
-                            seleccionada = installations[int(seleccion) - 1]
+                        seleccion_valida = ask_single_valid_index(
+                            len(installations)
+                        )
+
+                        if seleccion_valida is None:
+                            logging.info(
+                                f"{Fore.YELLOW}"
+                                "No se realizará ninguna desinstalación."
+                                f"{Style.RESET_ALL}"
+                            )
+                        else:
+                            seleccionada = installations[seleccion_valida - 1]
                             logging.info(
                                 f"{Fore.LIGHTWHITE_EX}"
                                 "Versión seleccionada: "
-                                f"{seleccionada.name}"
+                                f"{seleccionada.name} "
                                 f"({seleccionada.client_culture})"
                                 f"{Style.RESET_ALL}"
                             )
@@ -216,13 +231,54 @@ def main() -> None:
                             run_uninstallers(
                                 [seleccionada], office_uninstall_dir
                             )
-                        else:
+                    elif opcion == "4":
+                        logging.info(
+                            f"{Fore.LIGHTCYAN_EX}"
+                            "Seleccione las versiones que desea desinstalar "
+                            "(números separados por coma):"
+                            f"{Style.RESET_ALL}"
+                        )
+                        for idx, install in enumerate(installations, 1):
+                            logging.info(
+                                f"{Fore.LIGHTCYAN_EX}"
+                                f"{idx} - {install.name} "
+                                f"({install.client_culture})"
+                                f"{Style.RESET_ALL}"
+                            )
+
+                        indices_validos = ask_multiple_valid_indices(
+                            len(installations)
+                        )
+
+                        if not indices_validos:
                             logging.info(
                                 f"{Fore.YELLOW}"
-                                "Selección inválida. "
                                 "No se realizará ninguna desinstalación."
                                 f"{Style.RESET_ALL}"
                             )
+                        else:
+                            seleccionadas = [
+                                installations[i - 1] for i in indices_validos
+                            ]
+                            logging.info(
+                                f"{Fore.LIGHTWHITE_EX}"
+                                "Versiones seleccionadas para desinstalar:"
+                                f"{Style.RESET_ALL}"
+                            )
+                            for s in seleccionadas:
+                                logging.info(
+                                    f"{Fore.LIGHTWHITE_EX}"
+                                    f"- {s.name} ({s.client_culture})"
+                                    f"{Style.RESET_ALL}"
+                                )
+
+                            office_uninstall_dir = ensure_subfolder(
+                                temp_dir, "UninstallOfficeFiles"
+                            )
+                            run_uninstallers(
+                                seleccionadas, office_uninstall_dir
+                            )
+
                     else:
                         logging.info(
                             f"{Fore.YELLOW}"
@@ -251,7 +307,9 @@ def main() -> None:
                 temp_dir, "InstallOfficeFiles"
             )
             selection_window = OfficeSelectionWindow(office_install_dir)
-            install_subdir_path, selected_version = selection_window.show()
+            install_subdir_path, selected_version, selected_language_id = (
+                selection_window.show()
+            )
 
             if not install_subdir_path:
                 logging.info(
@@ -267,7 +325,9 @@ def main() -> None:
                 )
             else:
                 installer = OfficeInstaller(
-                    str(install_subdir_path), selected_version
+                    str(install_subdir_path),
+                    selected_version,
+                    str(selected_language_id),
                 )
                 installer.run_setup_commands()
         else:
