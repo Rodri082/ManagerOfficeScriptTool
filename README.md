@@ -39,8 +39,8 @@ ManagerOfficeScriptTool/
 │   └── utils/                         # Utilidades generales y helpers
 │       ├── __init__.py
 │       ├── logging_utils.py           # Logging profesional y seguro
-│       ├── path_utils.py              # Manejo avanzado y seguro de rutas
-│       ├── console_utils.py           # Utilidades para consola
+│       ├── path_utils.py              # Manejo avanzado y seguro de rutas y temporales
+│       ├── console_utils.py           # Utilidades para consola y menús interactivos
 │       └── gui_utils.py               # Helpers para la GUI
 │
 ├── main.py                            # Punto de entrada y orquestador del flujo
@@ -64,10 +64,13 @@ ManagerOfficeScriptTool/
 - **Configuración centralizada**: Todas las versiones, canales, apps e idiomas en [`config.yaml`](config.yaml).
 - **Detección avanzada** de instalaciones de Office (todas las versiones soportadas).
 - **Desinstalación limpia y segura** usando Office Deployment Tool (ODT) oficial.
+- **Selección múltiple de instalaciones**: Permite elegir una o varias instalaciones de Office para desinstalar, con menús interactivos y validación robusta.
 - **Instalación automatizada** con generación dinámica de `configuration.xml`.
 - **Interfaz gráfica moderna** (ttkbootstrap) para seleccionar versión, apps, arquitectura e idioma.
-- **Descarga directa y robusta** del ODT desde Microsoft, con reintentos y validación.
+- **Soporte ampliado de idiomas y aplicaciones**: Instalación en decenas de idiomas adicionales y selección de apps modernas como Teams, OneDrive, Groove, etc.
+- **Descarga directa, reanudable y validada** del ODT desde Microsoft, con reintentos, validación estricta y parseo robusto usando `lxml`.
 - **Logging profesional y seguro**: Rutas y claves anonimizadas, sin exponer datos sensibles.
+- **Gestión avanzada de temporales y rutas**: Limpieza segura y centralizada mediante utilidades especializadas.
 - **Cumplimiento estricto de PEP8** y uso de herramientas como Black, isort, flake8 y mypy.
 - **Preparado para integración continua y testing**.
 - **No instala software de terceros ni envía datos personales**.
@@ -79,6 +82,7 @@ ManagerOfficeScriptTool/
 - Windows 10 o superior.
 - Python 3.13+ (para desarrollo) o ejecutable standalone.
 - Acceso a internet para descargar ODT y actualizaciones.
+- Dependencias principales: ver `requirements.txt` (incluye `lxml`).
 
 ---
 
@@ -125,7 +129,7 @@ Edita [`config.yaml`](config.yaml) para:
 ## 📝 Ejemplo de Flujo
 
 1. **Detección**: El script detecta todas las instalaciones de Office.
-2. **Desinstalación**: Puedes elegir desinstalar todas, ninguna o una versión específica.
+2. **Desinstalación**: Puedes elegir desinstalar todas, ninguna, una o varias instalaciones específicas mediante menús interactivos.
 3. **Instalación**: Selecciona versión, arquitectura, idioma y apps desde la GUI.
 4. **Ejecución**: Se genera el XML y se lanza la instalación con ODT.
 5. **Limpieza**: Elimina carpetas temporales y muestra logs detallados.
@@ -169,6 +173,7 @@ Este proyecto está licenciado bajo la [Licencia MIT](LICENSE).
 - [Office Deployment Tool (ODT)](http://aka.ms/ODT)
 - [ttkbootstrap](https://ttkbootstrap.readthedocs.io/)
 - [colorama](https://pypi.org/project/colorama/)
+- [lxml](https://lxml.de/)
 
 ---
 

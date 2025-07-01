@@ -2,6 +2,49 @@
 
 Historial de cambios del proyecto **ManagerOfficeScriptTool**
 
+## [5.1] - 2025-07-01
+### 🆕 Mejoras y nuevas funcionalidades
+
+#### Interacción y experiencia de usuario
+- **Menú de desinstalación avanzado**: Ahora permite seleccionar múltiples instalaciones de Office para desinstalar en una sola operación, además de las opciones previas (ninguna, todas, una específica). Se utilizan nuevas funciones robustas para validar la selección y evitar errores de input.
+- **Funciones de consola ampliadas**: Se agregan `ask_menu_option`, `ask_single_valid_index` y `ask_multiple_valid_indices` para menús interactivos y selección múltiple, mejorando la flexibilidad y seguridad en la interacción por consola.
+- **Mensajes y logs enriquecidos**: Todos los mensajes y logs son ahora más claros, detallados y útiles para auditoría y soporte. Se informa explícitamente cuando no se realiza ninguna acción o si el usuario cancela una operación.
+
+#### Instalación y desinstalación
+- **Desinstalación en grupo (multi-idioma)**: Ahora es posible desinstalar varias instalaciones del mismo producto (por ejemplo, diferentes idiomas) en una sola operación, agrupando por nombre base y ProductID. El XML de desinstalación se genera dinámicamente con todos los idiomas seleccionados.
+- **Instalador con idioma registrado**: El instalador ahora recibe y muestra el idioma seleccionado, mejorando la trazabilidad y los mensajes al usuario durante la instalación.
+
+#### GUI mejorada
+- **Selección de Visio y Project**: Se añaden checkboxes en la GUI para incluir Visio y Project en la instalación, determinando dinámicamente el ProductID correcto según la versión de Office.
+- **Validaciones exhaustivas**: La GUI valida que el usuario seleccione al menos una aplicación, versión, arquitectura e idioma antes de proceder, mostrando mensajes claros en caso de error.
+- **Soporte para eliminar versiones MSI**: Se añade la opción "Eliminar versiones MSI (RemoveMSI)" en la GUI, agregando el nodo `<RemoveMSI/>` al XML de configuración si está seleccionado.
+- **Generación avanzada de configuration.xml**: El archivo XML se genera y formatea profesionalmente usando `xml.etree.ElementTree` y `xml.dom.minidom`.
+
+#### Configuración y compatibilidad
+- **Ampliación de aplicaciones por versión**: Las listas de aplicaciones disponibles para cada versión de Office han sido revisadas y ampliadas, incluyendo sistemáticamente Teams, Publisher, Access, Lync, OneDrive, Groove, etc., especialmente en Office 365 y LTSC.
+- **Idiomas soportados ampliados**: Se añaden numerosos idiomas adicionales, permitiendo una personalización mucho mayor en la instalación de Office.
+
+#### Núcleo y utilidades
+- **Caché LRU real en odt_fetcher.py**: Se implementa una caché LRU eficiente usando `OrderedDict` para la descarga de ODT, mejorando el control de memoria y evitando solicitudes duplicadas.
+- **Parseo robusto de HTML con lxml**: Ahora se utiliza `lxml.html` para extraer enlaces de descarga, mejorando la fiabilidad y seguridad.
+- **Validaciones y sanitización reforzadas**: Se refuerza la validación de dominios, la sanitización de nombres de archivo y la gestión de errores en la descarga y parseo de ODT.
+- **Descarga reanudable de ODT**: El gestor de ODT ahora soporta descargas reanudables si el servidor lo permite, optimizando el uso de ancho de banda y tiempo.
+- **Limpieza segura de temporales**: Se asegura la eliminación de carpetas temporales solo si existen y fueron utilizadas, informando al usuario del resultado.
+- **Nuevo módulo path_utils**: Centraliza todas las utilidades de rutas, carpetas temporales y sanitización de logs, mejorando la organización y mantenibilidad.
+
+#### Robustez y seguridad
+- **Manejo de errores y logs mejorados**: Se agregan logs detallados para cada tipo de error en el acceso al registro de Windows y en operaciones críticas, facilitando la depuración y el soporte.
+- **Sanitización avanzada de claves y rutas**: Se refuerza la anonimización de rutas y claves de registro en los logs para evitar exponer información sensible.
+
+#### Dependencias y build
+- **Nueva dependencia**: Se añade `lxml` en `requirements.txt` para el parseo robusto de HTML/XML.
+- **Script de compilación Nuitka mejorado**: El script de build ahora incluye comprobaciones previas, instalación automática de dependencias, limpieza de builds previas, compilación optimizada y verificación del resultado, mostrando mensajes claros en cada paso.
+
+---
+
+**Resumen:**  
+Esta versión refuerza la robustez, seguridad y flexibilidad del proyecto, amplía la compatibilidad con más idiomas y aplicaciones, y mejora significativamente la experiencia de usuario tanto en consola como en GUI. Se centralizan utilidades, se optimiza la gestión de descargas y temporales, y se profesionaliza el proceso de build
+
 ---
 ## [5.0] - 2025-05-26
 ### 🚀 Modularización total y refactor profesional
