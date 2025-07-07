@@ -12,7 +12,7 @@ from .core import (
     RegistryReader,
     fetch_odt_download_info,
 )
-from .gui import OfficeSelectionWindow
+from .interface import OfficeSelectionWindow
 from .scripts import OfficeInstaller, OfficeUninstaller, run_uninstallers
 from .utils import (
     ask_menu_option,

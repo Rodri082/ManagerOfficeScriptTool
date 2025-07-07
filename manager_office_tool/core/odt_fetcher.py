@@ -20,6 +20,7 @@ import ipaddress
 import logging
 import re
 import string
+import time
 from collections import OrderedDict
 from pathlib import Path
 from typing import Dict, Optional
@@ -232,7 +233,9 @@ def add_to_cache(key: str, value: Dict[str, object]) -> None:
         _FETCH_CACHE.popitem(last=False)  # Elimina menos recientemente usado
 
 
-def fetch_odt_download_info(download_id: str) -> Optional[Dict[str, object]]:
+def fetch_odt_download_info(
+    download_id: str, max_retries: int = 5
+) -> Optional[Dict[str, object]]:
     """
     Obtiene metadatos del instalador del Office Deployment Tool (ODT)
     desde la página oficial de Microsoft a partir de un `download_id`.
@@ -269,14 +272,26 @@ def fetch_odt_download_info(download_id: str) -> Optional[Dict[str, object]]:
         )
         return cached
 
-    summary_url = f"https://www.microsoft.com/en-us/download/details.aspx?id={download_id}"  # noqa: E501
+    summary_url = f"https://www.microsoft.com/en-us/download/details.aspx?id={download_id}"
     logging.debug(
         f"[*] fetch_odt_download_info: cargando página {summary_url}"
     )
-    html_content = get_page_html(summary_url)
+
+    html_content = None
+    for attempt in range(1, max_retries + 1):
+        html_content = get_page_html(summary_url)
+        if html_content:
+            break
+        logging.warning(
+            f"[!] Intento {attempt} fallido al obtener HTML. Reintentando..."
+        )
+        time.sleep(2 * attempt)  # espera progresiva
+
     if not html_content:
         logging.error(
-            f"[!] fetch_odt_download_info: HTML vacío para id={download_id}"
+            f"[!] No se pudo obtener la página de descarga de Microsoft tras {max_retries} intentos. "
+            "Verifique su conexión a Internet o intente nuevamente más tarde. "
+            "Si el problema persiste, la página podría estar temporalmente fuera de servicio o bloqueada por su red."
         )
         return None
 

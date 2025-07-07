@@ -27,9 +27,9 @@ ManagerOfficeScriptTool/
 │   │   ├── odt_fetcher.py             # Obtención de la URL oficial de ODT
 │   │   └── registry_utils.py          # Acceso seguro al registro de Windows
 │   │
-│   ├── gui/                           # Interfaz gráfica (ttkbootstrap)
+│   ├── interface/                     # Interfaz gráfica (ttkbootstrap)
 │   │   ├── __init__.py
-│   │   └── gui.py                     # Ventana de selección y configuración
+│   │   └── app_window.py              # Ventana de selección y configuración
 │   │
 │   ├── scripts/                       # Instalador y desinstalador de Office
 │   │   ├── __init__.py
