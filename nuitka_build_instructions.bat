@@ -10,7 +10,7 @@ REM   ¡IMPORTANTE! Ejecuta este script como administrador.
 REM   Haz clic derecho sobre este archivo y selecciona "Ejecutar como administrador".
 REM
 REM REQUISITOS:
-REM     - Python 3.10+ instalado y en PATH
+REM     - Python 3.13+ instalado y en PATH
 REM     - MSVC (cl.exe) disponible en PATH (Visual Studio Build Tools)
 REM     - Nuitka instalado (el script intentará instalarlo si no está)
 REM     - config.yaml y icon.ico presentes en el directorio raíz
