@@ -50,6 +50,7 @@ class OfficeSelectionWindow:
         self.languages = config["languages"]
 
         self.root = tb.Window(themename="darkly")
+        self.root.iconbitmap(get_data_path("icon.ico"))
         self.app_vars: dict[str, tb.BooleanVar] = {}
         self.app_checkbuttons: list[tb.Checkbutton] = []
         self.cancelled: bool = False
