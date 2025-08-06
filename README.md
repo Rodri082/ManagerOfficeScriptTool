@@ -183,3 +183,10 @@ Este proyecto está licenciado bajo la [Licencia MIT](LICENSE).
 Listo para producción, colaboración y futuras mejoras.
 
 ---
+
+## 💸 Donaciones en Criptomonedas (USDT - Ethereum)
+
+Si querés apoyar el desarrollo de este proyecto, podés hacerlo enviando USDT a través de la red **Ethereum (ERC-20)**:
+
+- **Red:** Ethereum (ERC-20)  
+- **Dirección:** `0x88deADE108a7EbC6c570A9d039d890725B879396`
