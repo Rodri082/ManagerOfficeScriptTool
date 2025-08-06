@@ -11,7 +11,7 @@ from .console_utils import (
     ask_single_valid_index,
     ask_yes_no,
 )
-from .gui_utils import center_window, clean_temp_folders_ui
+from .gui_utils import center_window
 from .logging_utils import init_logging
 from .path_utils import (
     clean_folders,
@@ -28,7 +28,6 @@ __all__ = [
     "ask_single_valid_index",
     "ask_multiple_valid_indices",
     "center_window",
-    "clean_temp_folders_ui",
     "init_logging",
     "clean_folders",
     "ensure_subfolder",

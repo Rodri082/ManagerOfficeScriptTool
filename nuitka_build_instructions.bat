@@ -111,11 +111,12 @@ py -m nuitka ^
     --enable-plugin=tk-inter ^
     --include-package=manager_office_tool ^
     --include-data-files=./config.yaml=config.yaml ^
+    --include-data-files=./icon.ico=icon.ico ^
     --windows-icon-from-ico=icon.ico ^
     --company-name="Rodri082" ^
     --product-name="ManagerOfficeScriptTool" ^
-    --file-version=5.0.0.0 ^
-    --product-version=5.0.0.0 ^
+    --file-version=5.1.0.0 ^
+    --product-version=5.1.0.0 ^
     --file-description="Herramienta ManagerOfficeScriptTool" ^
     --copyright="Licencia MIT Copyright 2024 Rodri082" ^
     --windows-uac-admin ^

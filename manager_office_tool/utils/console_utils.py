@@ -22,14 +22,16 @@ def ask_yes_no(message: str) -> bool:
         bool: True si la respuesta es afirmativa, False en caso contrario.
     """
     while True:
-        print(f"INFO - {message}", end="", flush=True)
+        print(f"INFO - {message} ", end="", flush=True)
         respuesta = input().strip().lower()
         if respuesta in ("s", "sí", "si"):
             return True
         elif respuesta in ("n", "no"):
             return False
         else:
-            msg = "[CONSOLE] Respuesta no válida. Por favor ingresa 'S' o 'N'."
+            msg = (
+                "[CONSOLE] Respuesta no válida. Por favor, ingresa 'S' o 'N'."
+            )
             logging.warning(f"{Fore.YELLOW}{msg}{Style.RESET_ALL}")
 
 

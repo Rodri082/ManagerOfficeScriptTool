@@ -266,7 +266,7 @@ def run_uninstallers(
             f"idioma(s))"
             f"{Style.RESET_ALL}"
         )
-        logging.info(f"{Fore.LIGHTCYAN_EX}{'-' * 110}{Style.RESET_ALL}")
+        logging.info(f"{Fore.LIGHTCYAN_EX}{'-' * 80}{Style.RESET_ALL}")
 
         familia = "2013" if "2013" in base_name else "Modern"
         if familia not in odt_managers:
@@ -295,4 +295,4 @@ def run_uninstallers(
             msg = f"[CONSOLE] Error al desinstalar {base_name}: {e}"
             logging.error(f"{Fore.RED}{msg}{Style.RESET_ALL}")
 
-        logging.info(f"{Fore.LIGHTCYAN_EX}{'-' * 110}{Style.RESET_ALL}")
+        logging.info(f"{Fore.LIGHTCYAN_EX}{'-' * 80}{Style.RESET_ALL}")

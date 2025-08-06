@@ -44,7 +44,7 @@ from manager_office_tool import (
     ask_multiple_valid_indices,
     ask_single_valid_index,
     ask_yes_no,
-    clean_temp_folders_ui,
+    clean_folders,
     ensure_subfolder,
     get_temp_dir,
     init_logging,
@@ -340,7 +340,7 @@ def main() -> None:
     except KeyboardInterrupt:
         # Maneja la interrupción manual del usuario (Ctrl+C)
         msg = "[CONSOLE] Ejecución interrumpida por el usuario (Ctrl+C)."
-        logging.error(f"{Fore.YELLOW}{msg}{Style.RESET_ALL}")
+        logging.warning(f"{Fore.YELLOW}{msg}{Style.RESET_ALL}")
 
     except Exception as e:
         # Captura y muestra cualquier error inesperado
@@ -358,7 +358,12 @@ def main() -> None:
         if office_uninstall_dir is not None:
             folders_to_clean.append(office_uninstall_dir)
         if folders_to_clean:
-            clean_temp_folders_ui(folders_to_clean)
+            if ask_yes_no(
+                f"{Fore.LIGHTCYAN_EX}"
+                "¿Deseas eliminar las carpetas temporales creadas por el script? (S/N): "
+                f"{Style.RESET_ALL}"
+            ):
+                clean_folders(folders_to_clean)
         print(
             f"{Fore.LIGHTWHITE_EX}"
             "Presione cualquier tecla para salir..."
