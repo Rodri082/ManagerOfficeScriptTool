@@ -7,7 +7,9 @@
 ## 🚀 ¿Qué es ManagerOfficeScriptTool?
 
 `ManagerOfficeScriptTool` es una herramienta profesional, **100% open source**, para detectar, desinstalar e instalar Microsoft Office en equipos Windows.  
-Desde la versión **5.0**, el proyecto ha sido completamente **refactorizado y modularizado**, separando la lógica en submódulos claros y configurables, con una interfaz gráfica moderna y soporte para múltiples versiones, arquitecturas e idiomas.
+Desde la versión **5.1.2**, el proyecto ha sido completamente **refactorizado y modularizado**, separando la lógica en submódulos claros y configurables, con una interfaz gráfica moderna y soporte para múltiples versiones, arquitecturas e idiomas.
+
+Nota importante: a partir de la versión 5.1.2 la limpieza de carpetas temporales cambió de una interacción GUI (`clean_temp_folders_ui` usando tkinter) a confirmación por consola (`ask_yes_no` + `clean_folders`). Si usas este paquete como librería y llamabas a `clean_temp_folders_ui`, adapta tu código para usar `clean_folders`. Este cambio puede ser breaking para consumidores externos.
 
 ---
 
@@ -148,15 +150,19 @@ Edita [`config.yaml`](config.yaml) para:
 
 ## 📦 Compilación a ejecutable
 
-Se recomienda usar [Nuitka](https://nuitka.net/) para compilar el proyecto a `.exe`:
+Se recomienda usar [Nuitka](https://nuitka.net/) para compilar el proyecto a `.exe`. El script de build incluido (`nuitka_build_instructions.bat`) ha sido mejorado y ahora realiza comprobaciones previas (permiso administrador, existencia de Python/MSVC, permisos de escritura), verifica e instala dependencias listadas en `requirements.txt` si faltan e intenta instalar `nuitka` automáticamente si es necesario. También incluye el icono (`icon.ico`) y establece las versiones de producto en `5.1.2.0`.
 
-```sh
+En CMD:
+```bat
 cmd /c nuitka_build_instructions.bat
 ```
-o en PowerShell:
+
+En PowerShell:
 ```powershell
 .\nuitka_build_instructions.bat
 ```
+
+Asegúrate de ejecutar el script como administrador y de tener acceso a internet para la instalación de paquetes si es necesario. También actualiza cualquier metadata (setup/pyproject) si publicas la nueva versión.
 
 Consulta el [`CHANGELOG.md`](CHANGELOG.md) para detalles de versiones y mejoras.
 

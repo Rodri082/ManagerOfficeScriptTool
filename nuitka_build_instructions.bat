@@ -28,7 +28,10 @@ REM --- Comprobación de permisos de administrador ---
 net session >nul 2>&1
 if errorlevel 1 (
     echo [ERROR] Debes ejecutar este script como administrador.
+    echo(
+    REM Indica al usuario cómo ejecutar como administrador
     echo Haz clic derecho sobre este archivo y selecciona "Ejecutar como administrador".
+    echo(
     pause
     exit /b 1
 )
@@ -39,6 +42,7 @@ set "PERM_TEST_FILE=%cd%\__perm_test__.tmp"
 echo test > "%PERM_TEST_FILE%" 2>nul
 if not exist "%PERM_TEST_FILE%" (
     echo [ERROR] No tienes permisos de escritura en este directorio: %cd%
+    echo(
     pause
     exit /b 1
 )
@@ -55,6 +59,7 @@ if exist build (
 :: Verificar si el archivo main.py existe
 if not exist main.py (
     echo [ERROR] No se encontró el archivo main.py
+    echo(
     pause
     exit /b 1
 )
@@ -62,6 +67,7 @@ if not exist main.py (
 :: Verificar si el archivo config.yaml existe
 if not exist config.yaml (
     echo [ERROR] No se encontró config.yaml
+    echo(
     pause
     exit /b 1
 )
@@ -69,6 +75,7 @@ if not exist config.yaml (
 :: Verificar si el archivo icon.ico existe
 if not exist icon.ico (
     echo [ERROR] No se encontró icon.ico
+    echo(
     pause
     exit /b 1
 )
@@ -77,6 +84,7 @@ if not exist icon.ico (
 where cl >nul 2>&1
 if errorlevel 1 (
     echo [ERROR] No se encontró cl.exe.
+    echo(
     pause
     exit /b 1
 )
@@ -85,8 +93,54 @@ if errorlevel 1 (
 where py >nul 2>&1
 if errorlevel 1 (
     echo [ERROR] No se encontró Python.
+    echo(
     pause
     exit /b 1
+)
+
+:: --- Verificar e instalar dependencias desde requirements.txt ---
+if exist "requirements.txt" (
+    echo Verificando dependencias en requirements.txt...
+    set "MISSING=0"
+    for /f "usebackq delims=" %%L in ("%cd%\requirements.txt") do (
+        set "line=%%L"
+        rem Trim leading spaces
+        for /f "tokens=* delims= " %%S in ("!line!") do set "line=%%S"
+        if "!line!"=="" (
+            rem linea vacia -> saltar
+        ) else (
+            set "first=!line:~0,1!"
+            if "!first!"=="#" (
+                rem comentario -> saltar
+            ) else (
+                for /f "tokens=1 delims==<>" %%P in ("!line!") do set "pkg=%%P"
+                for /f "tokens=* delims= " %%Q in ("!pkg!") do set "pkg=%%Q"
+                py -m pip show "!pkg!" >nul 2>&1
+                if errorlevel 1 (
+                    echo [MISSING] !pkg!
+                    set /a MISSING+=1
+                ) else (
+                    echo [OK] !pkg!
+                )
+            )
+        )
+    )
+    if "!MISSING!"=="0" (
+        echo Todas las dependencias estan instaladas.
+    ) else (
+        echo Instalando paquetes faltantes...
+        py -m pip install -r requirements.txt
+        if errorlevel 1 (
+            echo [ERROR] No se pudieron instalar los paquetes. Asegurate de tener permisos y conexion a Internet.
+            echo(
+            pause
+            exit /b 1
+        ) else (
+            echo [OK] Dependencias instaladas.
+        )
+    )
+) else (
+    echo [WARN] No se encontro requirements.txt. Se omitira la verificacion de dependencias.
 )
 
 :: Verificar si Nuitka está disponible
@@ -96,6 +150,7 @@ if errorlevel 1 (
     py -m pip install nuitka
     if errorlevel 1 (
         echo [ERROR] No se pudo instalar Nuitka. Asegúrate de tener permisos y una conexión a Internet.
+        echo(
         pause
         exit /b 1
     ) else (
@@ -115,8 +170,8 @@ py -m nuitka ^
     --windows-icon-from-ico=icon.ico ^
     --company-name="Rodri082" ^
     --product-name="ManagerOfficeScriptTool" ^
-    --file-version=5.1.0.0 ^
-    --product-version=5.1.0.0 ^
+    --file-version=5.1.2.0 ^
+    --product-version=5.1.2.0 ^
     --file-description="Herramienta ManagerOfficeScriptTool" ^
     --copyright="Licencia MIT Copyright 2024 Rodri082" ^
     --windows-uac-admin ^
@@ -132,6 +187,7 @@ py -m nuitka ^
 
 if errorlevel 1 (
     echo [ERROR] La compilacion fallo. Consulta build\compilation-report.xml para mas detalles.
+    echo(
     pause
     exit /b 1
 )
@@ -154,6 +210,6 @@ if defined EXE_PATH (
 )
 :: --- Fin de lógica principal ---
 
-echo.
+echo(
 pause
 endlocal

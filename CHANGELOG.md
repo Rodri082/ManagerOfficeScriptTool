@@ -2,6 +2,27 @@
 
 Historial de cambios del proyecto **ManagerOfficeScriptTool**
 
+## [5.1.2] - 2025-09-02
+### 🔧 Correcciones y mejoras (parche)
+- Refactor y limpieza: se eliminó la función GUI `clean_temp_folders_ui`; la limpieza de carpetas temporales ahora se realiza por consola usando `ask_yes_no` y `clean_folders`.
+- Logs y mensajes: estandarización de niveles (uso de `warning` / `info` en lugar de `error` en casos de interrupción o estado informativo) y mejoras en textos de validación de entrada en consola.
+- Utils: limpieza de imports y `__all__` en `manager_office_tool` y `manager_office_tool.utils` para eliminar referencias a la función removida.
+- Mejora en `ask_yes_no`: espacio final en el prompt y mensajes de error más claros; ahora registra advertencias en respuestas inválidas.
+- Uninstaller: ajuste de formato de logs (línea de separación reducida) y cambio de nivel de log en salida final.
+- Interfaz: añadido icono a la ventana principal (`self.root.iconbitmap(get_data_path("icon.ico"))`).
+- Build / CI: script de compilación `nuitka_build_instructions.bat` mejorado:
+  - Comprobaciones previas (permiso admin, permisos de escritura, existencia de archivos críticos).
+  - Limpieza de builds previos y verificación/instalación automática de dependencias desde `requirements.txt`.
+  - Instalación automática de `nuitka` si falta.
+  - Inclusión del icono en la compilación y flags ajustados.
+  - Uso consistente de `echo(` para saltos de línea en el script.
+- Dependencias: `requirements.txt` ahora gestionado por el script de build (verificaciones e instalación automática si faltan paquetes).
+- Versionado: actualizado `--file-version` y `--product-version` en el script de build a `5.1.2.0`.
+- Docs: README actualizado para reflejar que la limpieza de carpetas temporales pasó de GUI (`clean_temp_folders_ui`) a consola (`ask_yes_no` + `clean_folders`) y para documentar las mejoras del script de build y la nueva versión 5.1.2.
+### 📌 Nota
+- Cambios funcionales importantes sólo afectan el flujo de limpieza temporal (pasa de GUI a consola).
+
+---
 ## [5.1] - 2025-07-01
 ### 🆕 Mejoras y nuevas funcionalidades
 
